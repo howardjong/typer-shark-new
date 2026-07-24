@@ -114,4 +114,22 @@ describe("app state machine", () => {
     expect(results).toMatchObject({ screen: "results", runPolicy: "practice" });
     expect(reduce(results, { type: "PLAY_AGAIN" })).toMatchObject({ screen: "practice" });
   });
+
+  it("shows a completed Current Gate celebration before its normal results card", () => {
+    const gateState: AppState = { ...playingState, missionId: "sunlit-gate" };
+    const stats = {
+      hearts: 2, timeLeftMs: 0, activeMs: 25_000, correct: 12, accepted: 13,
+      streak: 4, bestStreak: 6, completed: 8, buildBits: 24,
+      shieldCharge: 0, shieldReady: false, ended: "success" as const,
+    };
+    const celebration = reduce(gateState, {
+      type: "MISSION_END",
+      outcome: "success",
+      stats,
+      celebrate: true,
+    });
+    expect(celebration).toMatchObject({ screen: "gateCelebration", missionId: "sunlit-gate" });
+    const results = reduce(celebration, { type: "CELEBRATION_COMPLETE" });
+    expect(results).toMatchObject({ screen: "results", outcome: "success", runPolicy: "timed" });
+  });
 });

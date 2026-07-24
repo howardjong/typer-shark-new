@@ -65,7 +65,7 @@ export function AdventureMap({
                           <span>{mission.kind === "current-gate" ? "Current Gate" : mission.lessonLabel}</span>
                         </span>
                       </button>
-                      {available && mission.kind === "regular" && (
+                      {available && (
                         <button className="mission-practice" onClick={() => onPracticeMission(mission.id)}>
                           Practise without timer
                         </button>

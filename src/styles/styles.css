@@ -367,6 +367,7 @@ p {
 
 .practice-label { max-width: min(92vw, 620px); overflow-wrap: anywhere; }
 .practice-hint { min-height: 28px; color: var(--gold); }
+.practice-foam-cube { width: 72px; height: 72px; }
 
 .build-break-screen {
   display: flex;
@@ -678,6 +679,37 @@ p {
 .foam-cube { width: 54px; height: 54px; border: 6px solid #c9f7ee; background: #6fbcff; box-shadow: inset 8px 8px 0 rgba(255, 255, 255, 0.35); }
 .foam-cube.variant-1 { background: var(--teal); }
 .foam-cube.variant-2 { background: var(--violet); }
+
+/* ---------- region build celebration ---------- */
+
+.gate-celebration {
+  display: flex;
+  min-height: 100%;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: linear-gradient(180deg, #3d3a72 0%, var(--water) 54%, var(--navy-deep) 100%);
+}
+
+.celebration-card { width: min(100%, 560px); text-align: center; }
+.celebration-build {
+  display: flex;
+  height: 126px;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 7px;
+  margin: 12px 0 20px;
+}
+
+.celebration-block {
+  width: 46px;
+  border: 5px solid #c9f7ee;
+  background: var(--teal);
+  box-shadow: inset 7px 7px 0 rgba(255, 255, 255, 0.28);
+}
+.celebration-block:nth-child(1), .celebration-block:nth-child(5) { height: 46px; background: var(--coral); }
+.celebration-block:nth-child(2), .celebration-block:nth-child(4) { height: 82px; background: #6fbcff; }
+.celebration-block:nth-child(3) { height: 118px; background: var(--violet); }
 
 /* ---------- play field & targets ---------- */
 

@@ -20,6 +20,7 @@ import { ResultsCard } from "../components/ResultsCard";
 import { PracticeScreen } from "../components/PracticeScreen";
 import { BuildBreakScreen } from "../components/BuildBreakScreen";
 import { GateScreen } from "../components/GateScreen";
+import { GateCelebration } from "../components/GateCelebration";
 import { SettingsPanel } from "../components/SettingsPanel";
 
 export function App() {
@@ -85,7 +86,12 @@ export function App() {
       });
       setProgress(next);
       if (storage) saveProgress(storage, next);
-      dispatch({ type: "MISSION_END", outcome, stats });
+      dispatch({
+        type: "MISSION_END",
+        outcome,
+        stats,
+        celebrate: outcome === "success" && mission.kind === "current-gate",
+      });
     },
     [progress, storage],
   );
@@ -220,6 +226,13 @@ export function App() {
           onRestart={() => dispatch({ type: "BUILD_BREAK_RESTART" })}
           onLeave={() => dispatch({ type: "LEAVE" })}
           onOpenSettings={() => setShowSettings(true)}
+        />
+      )}
+
+      {state.screen === "gateCelebration" && (
+        <GateCelebration
+          mission={getMission(state.missionId)}
+          onContinue={() => dispatch({ type: "CELEBRATION_COMPLETE" })}
         />
       )}
 

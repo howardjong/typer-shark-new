@@ -45,6 +45,12 @@ export type AppState =
       attempt: number;
     }
   | {
+      screen: "gateCelebration";
+      difficulty: DifficultyId;
+      missionId: MissionId;
+      stats: EngineSnapshot;
+    }
+  | {
       screen: "results";
       difficulty: DifficultyId;
       missionId: MissionId;
@@ -65,12 +71,13 @@ export type AppEvent =
   | { type: "START_BUILD_BREAK" }
   | { type: "BUILD_BREAK_END" }
   | { type: "BUILD_BREAK_RESTART" }
+  | { type: "CELEBRATION_COMPLETE" }
   | { type: "COUNTDOWN_DONE" }
   | { type: "PAUSE"; reason: PauseReason }
   | { type: "RESUME" }
   | { type: "RESTART" }
   | { type: "LEAVE" }
-  | { type: "MISSION_END"; outcome: MissionOutcome; stats: EngineSnapshot }
+  | { type: "MISSION_END"; outcome: MissionOutcome; stats: EngineSnapshot; celebrate?: boolean }
   | { type: "PLAY_AGAIN" }
   | { type: "HOME" };
 
@@ -156,6 +163,18 @@ export function reduce(state: AppState, event: AppEvent): AppState {
     case "BUILD_BREAK_RESTART":
       return state.screen === "buildBreak" ? { ...state, attempt: state.attempt + 1 } : state;
 
+    case "CELEBRATION_COMPLETE":
+      return state.screen === "gateCelebration"
+        ? {
+            screen: "results",
+            difficulty: state.difficulty,
+            missionId: state.missionId,
+            runPolicy: "timed",
+            outcome: "success",
+            stats: state.stats,
+          }
+        : state;
+
     case "COUNTDOWN_DONE":
       return state.screen === "mission" && state.phase.name === "countdown"
         ? { ...state, phase: { name: "playing" } }
@@ -183,13 +202,20 @@ export function reduce(state: AppState, event: AppEvent): AppState {
         : state;
 
     case "LEAVE":
-      return state.screen === "mission" || state.screen === "practice" || state.screen === "buildBreak"
+      return state.screen === "mission" || state.screen === "practice" || state.screen === "buildBreak" || state.screen === "gateCelebration"
         ? { screen: "adventureMap", difficulty: state.difficulty }
         : state;
 
     case "MISSION_END":
       return state.screen === "mission"
-        ? {
+        ? event.celebrate && event.outcome === "success"
+          ? {
+              screen: "gateCelebration",
+              difficulty: state.difficulty,
+              missionId: state.missionId,
+              stats: event.stats,
+            }
+          : {
             screen: "results",
             difficulty: state.difficulty,
             missionId: state.missionId,
@@ -221,7 +247,7 @@ export function reduce(state: AppState, event: AppEvent): AppState {
     case "HOME":
       return state.screen === "results" || state.screen === "difficulty" ||
         state.screen === "briefing" || state.screen === "keyboardCheck" || state.screen === "adventureMap" ||
-        state.screen === "practice"
+        state.screen === "practice" || state.screen === "gateCelebration"
         ? { screen: "welcome" }
         : state;
 

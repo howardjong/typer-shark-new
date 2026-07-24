@@ -52,6 +52,7 @@ export function PracticeScreen({ mission, onFinish, onRestart, onLeave, onOpenSe
   const statsRef = useRef(stats);
   const activeMsRef = useRef(0);
   const family = mission.targetFamilies.find(isOrdinaryTargetFamily) ?? "pebble-puffer";
+  const gatePractice = mission.kind === "current-gate";
 
   const setPracticeTarget = useCallback((next: PracticeTarget) => {
     targetRef.current = next;
@@ -181,18 +182,18 @@ export function PracticeScreen({ mission, onFinish, onRestart, onLeave, onOpenSe
       className="screen practice-screen"
       tabIndex={0}
       onKeyDown={handleKeyDown}
-      aria-label="Untimed Block Reef practice"
+      aria-label={gatePractice ? "Untimed Current Gate practice" : "Untimed Block Reef practice"}
     >
       <div className="practice-header">
         <div>
-          <span className="practice-kicker">Practise without timer</span>
+          <span className="practice-kicker">{gatePractice ? "Current Gate practise" : "Practise without timer"}</span>
           <strong>{mission.title}</strong>
         </div>
         <button className="btn btn-small" onClick={() => onFinish(snapshot())}>Finish Practise</button>
       </div>
       <main className="practice-main">
         <p className="lesson-label">{mission.lessonLabel}</p>
-        <p>One label at a time. Take as long as you need.</p>
+        <p>{gatePractice ? "Guide one stationary foam cube at a time. Take as long as you need." : "One label at a time. Take as long as you need."}</p>
         <div className="practice-target" aria-live="polite">
           <div className="label-plate practice-label">
             {target.label.split("").map((character, index) => (
@@ -204,7 +205,9 @@ export function PracticeScreen({ mission, onFinish, onRestart, onLeave, onOpenSe
               </span>
             ))}
           </div>
-          <TargetCreature family={family} variant={target.index} />
+          {gatePractice
+            ? <div className={`foam-cube practice-foam-cube variant-${target.index % 3}`} aria-hidden="true" />
+            : <TargetCreature family={family} variant={target.index} />}
         </div>
         <p className="practice-hint" role="status">{hint || "Type the label when you are ready."}</p>
       </main>
