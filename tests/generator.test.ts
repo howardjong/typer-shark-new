@@ -1,7 +1,23 @@
 import { describe, expect, it } from "vitest";
 import { DIFFICULTIES } from "../src/game/config";
 import { Engine } from "../src/game/engine";
-import { STARTER_WARMUP_LETTERS, validateLetterBank, ALL_LETTERS } from "../src/game/wordBanks";
+import {
+  ALL_LETTERS,
+  BOTTOM_ROW_LETTERS,
+  COMMON_SIGHT_WORDS,
+  HOME_ROW_LETTERS,
+  SIGHT_WORD_RULES,
+  STANDARD_FAMILIAR_WORDS,
+  STANDARD_WORD_RULES,
+  STARTER_CVC_RULES,
+  STARTER_CVC_WORDS,
+  STARTER_WARMUP_LETTERS,
+  SWIFT_CHALLENGE_WORDS,
+  SWIFT_WORD_RULES,
+  TOP_ROW_LETTERS,
+  validateLetterBank,
+  validateWordBank,
+} from "../src/game/wordBanks";
 
 describe("word banks", () => {
   it("warm-up bank is valid", () => {
@@ -10,11 +26,31 @@ describe("word banks", () => {
   it("full letter bank is valid", () => {
     expect(validateLetterBank(ALL_LETTERS)).toEqual([]);
   });
+  it("keeps each required letter drill bank valid", () => {
+    expect(validateLetterBank(HOME_ROW_LETTERS)).toEqual([]);
+    expect(validateLetterBank(TOP_ROW_LETTERS)).toEqual([]);
+    expect(validateLetterBank(BOTTOM_ROW_LETTERS)).toEqual([]);
+  });
   it("validation catches duplicates, case, and length problems", () => {
     expect(validateLetterBank(["a", "a"]).length).toBeGreaterThan(0);
     expect(validateLetterBank(["A"]).length).toBeGreaterThan(0);
     expect(validateLetterBank(["ab"]).length).toBeGreaterThan(0);
     expect(validateLetterBank([]).length).toBeGreaterThan(0);
+  });
+
+  it("keeps every reviewed word bank suitable for its difficulty", () => {
+    expect(validateWordBank(STARTER_CVC_WORDS, STARTER_CVC_RULES)).toEqual([]);
+    expect(validateWordBank(COMMON_SIGHT_WORDS, SIGHT_WORD_RULES)).toEqual([]);
+    expect(validateWordBank(STANDARD_FAMILIAR_WORDS, STANDARD_WORD_RULES)).toEqual([]);
+    expect(validateWordBank(SWIFT_CHALLENGE_WORDS, SWIFT_WORD_RULES)).toEqual([]);
+  });
+
+  it("rejects punctuation, empty labels, invalid lengths, and weak variety", () => {
+    const rules = { minEntries: 3, minLength: 3, maxLength: 4, minDistinctFirstLetters: 3 };
+    expect(validateWordBank(["cat", "dog", "sun!"], rules).length).toBeGreaterThan(0);
+    expect(validateWordBank(["cat", "", "dog"], rules).length).toBeGreaterThan(0);
+    expect(validateWordBank(["a", "bee", "dog"], rules).length).toBeGreaterThan(0);
+    expect(validateWordBank(["cat", "cap", "can"], rules).length).toBeGreaterThan(0);
   });
 });
 
