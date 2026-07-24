@@ -51,7 +51,8 @@ Every row below is a **functional commit boundary**. Do not start the next row w
 | C2b | Manual campaign presentation audit | Review 200% zoom, small-screen layout, reduced motion, keyboard-only flow, and screen-reader announcements in a persistent browser preview. This remains a release condition and is repeated in E2's manual matrix. | Manual browser/accessibility matrix. | `chore: verify adventure presentation` | Deferred to release audit — preview unavailable in this container |
 | D1 | Deep Current | Add the post-four-mission unlock, bounded endless escalation, 60-second breather, and local distance best. | Deep Current bounds, breather, and persistence tests. | `feat: add deep current mode` | Complete |
 | E1 | Key Camp | Add posture/finger/letter/word drills, keyboard/hands guide, repeat/skip/slow controls, and `;` acceptance only in this mode. | Lesson sequence and input-policy tests; keyboard-only manual pass. | `feat: add key camp tutor` | Complete |
-| E2 | Release hardening | Complete cross-mode accessibility and failure-path checks, production smoke tooling, and deployment-readiness documentation. | Full `npm test`, `npm run type-check`, `npm run build`, production smoke, and required manual matrix. | `chore: complete v1 release checks` | Next |
+| E2a | Automated release hardening | Add managed production smoke tooling and release/manual-matrix documentation; run all automated cross-mode gates. | Full `npm test`, `npm run type-check`, `npm run build`, and `npm run smoke`. | `chore: add release smoke checks` | Complete |
+| E2b | Manual release and deployment audit | Complete the persistent-browser accessibility matrix and Autoscale deployed smoke checks. This requires an external preview/deployment session. | Required manual matrix plus deployed root, asset, and route checks. | `chore: complete v1 release checks` | Pending — requires persistent preview and deployment authority |
 
 ### Checkpoint details
 

@@ -22,7 +22,7 @@ The full spec lives in [`REPLIT_AGENT_SPEC.md`](./REPLIT_AGENT_SPEC.md) (441 lin
 | **#2 — First playable slice (Starter mission)** | **Complete** |
 | #3 — Adventure Trail campaign (12 missions, target families, Current Gates) | In progress — automated layout/accessibility complete; manual preview audit remains |
 | #4 — Deep Current and Key Camp (the two remaining game modes) | Complete |
-| #5 — Verify & publish (quality gates + Autoscale deploy) | In progress — automated gates are clean; manual preview/deployment audit remains |
+| #5 — Verify & publish (quality gates + Autoscale deploy) | In progress — automated gates and production smoke pass; manual preview/deployment audit remains |
 
 The playable flow is: **Welcome → keyboard check → difficulty picker → Adventure map → briefing → 3-2-1 countdown → mission → results card.** Regular missions also offer untimed practice and a Build Break after a success; unlocked Current Gates are playable as timed encounters.
 
@@ -53,6 +53,7 @@ The documentation checkpoint that introduced this protocol is committed as `docs
 - `feat: improve campaign accessibility layout`
 - `feat: add deep current mode`
 - `feat: add key camp tutor`
+- `chore: add release smoke checks`
 
 ---
 
@@ -150,6 +151,8 @@ index.html
 server/serve.mjs         Static server: 0.0.0.0, $PORT (default 3000), SPA fallback, path-traversal guard
 scripts/
   generate-audio.mjs     Build-time ElevenLabs sound-effects generator (--force to regenerate)
+  smoke-production.mjs   Starts/stops production server; checks root, asset cache, and SPA fallback
+RELEASE_CHECKLIST.md     Automated commands and required manual/publishing matrix
 tests/
   engine.test.ts         Selection, lock, tie-break, wrong-key, collision, hearts, timing, streaks
   gateEngine.test.ts     Gate stability, projectile cap, no-Shield, and heart-loss rules
@@ -177,6 +180,7 @@ npm test           # Vitest (92 tests, ~3 s)
 npm run type-check # tsc --noEmit (zero errors expected)
 npm run build      # tsc + Vite → dist/
 npm start          # serves dist/ on $PORT (default 3000); requires a build first
+npm run smoke      # managed production root, hashed-asset, and SPA-fallback smoke check
 ```
 
 **Regenerate audio** (only needed if prompts change or files are missing):
@@ -195,7 +199,7 @@ Adventure Trail now has its complete 12-mission data model, unlock/replay persis
 - Run the manual 200% zoom, small-screen, reduced-motion, keyboard-only, and screen-reader audit in a persistent browser preview. The production server starts here, but this execution environment stops it when the command returns, so no interactive audit was possible.
 - Keep the three difficulties distinct from the three game modes. Starter / Standard / Swift remain pacing rules; Adventure Trail / Deep Current / Key Camp are game modes.
 
-The next checkpoint is **E2 — Release hardening**. The automated test/type/build gates are clean; the persistent-browser preview, 200% zoom/reduced-motion/screen-reader matrix, and Autoscale deployment smoke still require an environment that can keep the server running.
+Automated release hardening is complete: `npm test`, `npm run type-check`, `npm run build`, and `npm run smoke` pass. **E2b** remains: the persistent-browser preview, 200% zoom/reduced-motion/screen-reader matrix, and Autoscale deployment smoke require an environment that can keep a preview running and explicit publishing authority. Use [`RELEASE_CHECKLIST.md`](./RELEASE_CHECKLIST.md) for the exact matrix.
 
 The reviewed banks and mission definitions live in `src/game/wordBanks.ts` and `src/game/missions.ts`; do not reintroduce the old letter-only mission model.
 
