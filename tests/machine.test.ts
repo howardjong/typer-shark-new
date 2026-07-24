@@ -27,6 +27,12 @@ describe("app state machine", () => {
     expect(s).toMatchObject({ screen: "mission", phase: { name: "playing" } });
   });
 
+  it("opens Key Camp directly from welcome without entering campaign state", () => {
+    const camp = reduce(initialState, { type: "OPEN_KEY_CAMP" });
+    expect(camp).toEqual({ screen: "keyCamp" });
+    expect(reduce(camp, { type: "HOME" })).toEqual(initialState);
+  });
+
   it("guards: PAUSE only applies while playing", () => {
     expect(reduce(initialState, { type: "PAUSE", reason: "user" })).toBe(initialState);
     const paused = reduce(playingState, { type: "PAUSE", reason: "user" });

@@ -21,6 +21,7 @@ export type RunPolicy = "timed" | "practice";
 
 export type AppState =
   | { screen: "welcome" }
+  | { screen: "keyCamp" }
   | { screen: "keyboardCheck" }
   | { screen: "difficulty" }
   | { screen: "adventureMap"; difficulty: DifficultyId }
@@ -75,6 +76,7 @@ export type AppState =
 
 export type AppEvent =
   | { type: "PLAY" }
+  | { type: "OPEN_KEY_CAMP" }
   | { type: "KEYBOARD_OK" }
   | { type: "PICK_DIFFICULTY"; difficulty: DifficultyId }
   | { type: "SELECT_DEEP_CURRENT" }
@@ -108,6 +110,9 @@ export function reduce(state: AppState, event: AppEvent): AppState {
   switch (event.type) {
     case "PLAY":
       return state.screen === "welcome" ? { screen: "keyboardCheck" } : state;
+
+    case "OPEN_KEY_CAMP":
+      return state.screen === "welcome" ? { screen: "keyCamp" } : state;
 
     case "KEYBOARD_OK":
       return state.screen === "keyboardCheck" ? { screen: "difficulty" } : state;
@@ -316,7 +321,7 @@ export function reduce(state: AppState, event: AppEvent): AppState {
     case "HOME":
       return state.screen === "results" || state.screen === "difficulty" ||
         state.screen === "briefing" || state.screen === "keyboardCheck" || state.screen === "adventureMap" ||
-        state.screen === "practice" || state.screen === "gateCelebration" || state.screen === "deepCurrent" || state.screen === "deepCurrentSetup" || state.screen === "deepCurrentResults"
+        state.screen === "practice" || state.screen === "gateCelebration" || state.screen === "deepCurrent" || state.screen === "deepCurrentSetup" || state.screen === "deepCurrentResults" || state.screen === "keyCamp"
         ? { screen: "welcome" }
         : state;
 

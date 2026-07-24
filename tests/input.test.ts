@@ -35,8 +35,9 @@ describe("classifyKey", () => {
     expect(classifyKey({ key: " " })).toEqual({ kind: "space" });
   });
 
-  it("accepts semicolon and other printable chars as attempts", () => {
-    expect(classifyKey({ key: ";" })).toEqual({ kind: "char", char: ";" });
+  it("accepts semicolon only for Key Camp and keeps other printable chars as attempts", () => {
+    expect(classifyKey({ key: ";" })).toEqual({ kind: "ignore" });
+    expect(classifyKey({ key: ";" }, { allowSemicolon: true })).toEqual({ kind: "char", char: ";" });
     expect(classifyKey({ key: "3" })).toEqual({ kind: "char", char: "3" });
   });
 });

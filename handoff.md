@@ -2,7 +2,7 @@
 
 > **Date:** 2026-07-23  
 > **Branch:** main  
-> **Passing tests:** 87/87 · TypeScript: clean · Production build: verified
+> **Passing tests:** 92/92 · TypeScript: clean · Production build: verified
 
 ---
 
@@ -21,8 +21,8 @@ The full spec lives in [`REPLIT_AGENT_SPEC.md`](./REPLIT_AGENT_SPEC.md) (441 lin
 | #1 — Setup & review | Merged |
 | **#2 — First playable slice (Starter mission)** | **Complete** |
 | #3 — Adventure Trail campaign (12 missions, target families, Current Gates) | In progress — automated layout/accessibility complete; manual preview audit remains |
-| #4 — Deep Current and Key Camp (the two remaining game modes) | In progress — Deep Current complete; Key Camp remains |
-| #5 — Verify & publish (quality gates + Autoscale deploy) | Proposed |
+| #4 — Deep Current and Key Camp (the two remaining game modes) | Complete |
+| #5 — Verify & publish (quality gates + Autoscale deploy) | In progress — automated gates are clean; manual preview/deployment audit remains |
 
 The playable flow is: **Welcome → keyboard check → difficulty picker → Adventure map → briefing → 3-2-1 countdown → mission → results card.** Regular missions also offer untimed practice and a Build Break after a success; unlocked Current Gates are playable as timed encounters.
 
@@ -52,6 +52,7 @@ The documentation checkpoint that introduced this protocol is committed as `docs
 - `feat: add gate practice and region celebrations`
 - `feat: improve campaign accessibility layout`
 - `feat: add deep current mode`
+- `feat: add key camp tutor`
 
 ---
 
@@ -117,6 +118,8 @@ src/
     DeepCurrentSetup.tsx Explicit difficulty selection before endless play
     DeepCurrentScreen.tsx RAF-driven endless play, pause, and breather UI
     DeepCurrentResults.tsx Distance and local-best feedback
+    KeyCampScreen.tsx    Untimed posture-to-words typing tutor
+    KeyboardGuide.tsx    Large highlighted keyboard and illustrated hand guide
     Hud.tsx              Hearts (text + emoji), timer, bits, streak, pause button
     PausePanel.tsx       Resume / Slow Down / Restart / Settings / Leave
     PebblePuffer.tsx     Inline SVG block-fish, 4 colour variants
@@ -131,6 +134,7 @@ src/
     engine.ts            Core simulation; see Architecture section above
     gateEngine.ts        Deterministic Current Gate projectile/stability simulation
     deepCurrentEngine.ts Bounded endless pacing wrapper with 60-second breathers
+    keyCampLessons.ts    Ordered posture, letter, and word drill data
     missions.ts          12-mission Adventure Trail topology and unlock definitions
     positioning.ts       Pure measured-width placement helper for both playfields
   state/
@@ -154,6 +158,8 @@ tests/
   liveRegions.test.tsx     Atomic polite announcements for both playfields
   positioning.test.ts       Safe variable-width label placement
   deepCurrentEngine.test.ts Bounded pace tiers, target cap, and breather rules
+  keyCampLessons.test.ts   Tutor lesson order and finger-hint data
+  keyCampScreen.test.tsx   Semicolon drill and tutor-control interaction
   generator.test.ts      No-same-first-letter, max targets, bounded termination, determinism, spawn rate
   stats.test.ts          Accuracy and WPM edge cases (null, NaN, zero)
   input.test.ts          classifyKey filtering — case, repeats, modifiers, IME, dead keys
@@ -167,7 +173,7 @@ tests/
 
 ```bash
 npm run dev        # dev server on port 5000 (Vite)
-npm test           # Vitest (87 tests, ~3 s)
+npm test           # Vitest (92 tests, ~3 s)
 npm run type-check # tsc --noEmit (zero errors expected)
 npm run build      # tsc + Vite → dist/
 npm start          # serves dist/ on $PORT (default 3000); requires a build first
@@ -189,7 +195,7 @@ Adventure Trail now has its complete 12-mission data model, unlock/replay persis
 - Run the manual 200% zoom, small-screen, reduced-motion, keyboard-only, and screen-reader audit in a persistent browser preview. The production server starts here, but this execution environment stops it when the command returns, so no interactive audit was possible.
 - Keep the three difficulties distinct from the three game modes. Starter / Standard / Swift remain pacing rules; Adventure Trail / Deep Current / Key Camp are game modes.
 
-The next code checkpoint is **E1 — Key Camp**. Release hardening (E2) follows according to `IMPLEMENTATION_PLAN.md`.
+The next checkpoint is **E2 — Release hardening**. The automated test/type/build gates are clean; the persistent-browser preview, 200% zoom/reduced-motion/screen-reader matrix, and Autoscale deployment smoke still require an environment that can keep the server running.
 
 The reviewed banks and mission definitions live in `src/game/wordBanks.ts` and `src/game/missions.ts`; do not reintroduce the old letter-only mission model.
 

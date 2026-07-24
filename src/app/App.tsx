@@ -25,6 +25,7 @@ import { GateCelebration } from "../components/GateCelebration";
 import { DeepCurrentSetup } from "../components/DeepCurrentSetup";
 import { DeepCurrentScreen } from "../components/DeepCurrentScreen";
 import { DeepCurrentResults } from "../components/DeepCurrentResults";
+import { KeyCampScreen } from "../components/KeyCampScreen";
 import { SettingsPanel } from "../components/SettingsPanel";
 
 export function App() {
@@ -147,7 +148,18 @@ export function App() {
             audio.init();
             dispatch({ type: "PLAY" });
           }}
+          onKeyCamp={() => {
+            audio.init();
+            dispatch({ type: "OPEN_KEY_CAMP" });
+          }}
           onSettings={() => setShowSettings(true)}
+        />
+      )}
+
+      {state.screen === "keyCamp" && (
+        <KeyCampScreen
+          onExit={() => dispatch({ type: "HOME" })}
+          onOpenSettings={() => setShowSettings(true)}
         />
       )}
 

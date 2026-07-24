@@ -20,7 +20,12 @@ export interface KeyEventLike {
   altKey?: boolean;
 }
 
-export function classifyKey(e: KeyEventLike): KeyAction {
+export interface InputPolicy {
+  /** Key Camp alone teaches the home-row semicolon key. */
+  allowSemicolon?: boolean;
+}
+
+export function classifyKey(e: KeyEventLike, policy: InputPolicy = {}): KeyAction {
   if (e.repeat || e.isComposing) return { kind: "ignore" };
   if (e.ctrlKey || e.metaKey || e.altKey) return { kind: "ignore" };
   if (e.key === "Escape") return { kind: "escape" };
@@ -29,6 +34,7 @@ export function classifyKey(e: KeyEventLike): KeyAction {
   // Dead keys / composition intermediates report multi-char names like "Dead".
   if (e.key.length !== 1) return { kind: "ignore" };
   const char = e.key.toLowerCase();
+  if (char === ";" && !policy.allowSemicolon) return { kind: "ignore" };
   // Printable single characters count as attempts (right or wrong).
   return { kind: "char", char };
 }

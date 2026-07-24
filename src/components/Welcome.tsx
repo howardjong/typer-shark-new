@@ -1,10 +1,11 @@
 interface Props {
   buildBits: number;
   onPlay: () => void;
+  onKeyCamp: () => void;
   onSettings: () => void;
 }
 
-export function Welcome({ buildBits, onPlay, onSettings }: Props) {
+export function Welcome({ buildBits, onPlay, onKeyCamp, onSettings }: Props) {
   return (
     <div className="screen menu-screen welcome">
       <div className="menu-card">
@@ -21,6 +22,9 @@ export function Welcome({ buildBits, onPlay, onSettings }: Props) {
         <div className="button-col">
           <button className="btn btn-primary btn-big" onClick={onPlay} autoFocus>
             Play
+          </button>
+          <button className="btn" onClick={onKeyCamp}>
+            Key Camp
           </button>
           <button className="btn" onClick={onSettings}>
             Settings
