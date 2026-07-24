@@ -2,30 +2,34 @@ import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "r
 import { DIFFICULTIES, DifficultyId } from "../game/config";
 import { Engine, EngineEvent, EngineSnapshot, MissionOutcome } from "../game/engine";
 import { classifyKey } from "../game/input";
-import { WARMUP_LESSON } from "../game/wordBanks";
+import type { MissionDefinition } from "../game/missions";
+import { isOrdinaryTargetFamily } from "../game/targetTypes";
+import { STARTER_CVC_WORDS } from "../game/wordBanks";
 import { audio } from "../audio/audio";
 import type { Settings } from "../state/settings";
 import type { AppEvent, MissionPhase } from "../state/machine";
 import { Countdown } from "./Countdown";
 import { Hud } from "./Hud";
 import { PausePanel } from "./PausePanel";
-import { PebblePuffer } from "./PebblePuffer";
+import { TargetCreature } from "./TargetCreature";
 
 interface Props {
   difficultyId: DifficultyId;
+  mission: MissionDefinition;
   phase: MissionPhase;
   settings: Settings;
   updateSettings: (patch: Partial<Settings>) => void;
   dispatch: (event: AppEvent) => void;
-  onMissionEnd: (outcome: MissionOutcome, stats: EngineSnapshot) => void;
+  onMissionEnd: (missionId: MissionDefinition["id"], outcome: MissionOutcome, stats: EngineSnapshot) => void;
   onOpenSettings: () => void;
 }
 
-const TARGET_WIDTH_PX = 150;
+const TARGET_WIDTH_PX = 320;
 const HINT_DURATION_MS = 2500;
 
 export function GameScreen({
   difficultyId,
+  mission,
   phase,
   settings,
   updateSettings,
@@ -46,8 +50,11 @@ export function GameScreen({
         },
         motion: settings.motion,
         run: {
-          id: WARMUP_LESSON.id,
-          labels: WARMUP_LESSON.letters,
+          id: mission.id,
+          labels: mission.labels,
+          targetFamilies: mission.targetFamilies.filter(isOrdinaryTargetFamily),
+          shellbackLabels: mission.labels,
+          bonusLabels: STARTER_CVC_WORDS,
         },
         seed: (Date.now() ^ 0x5eed) >>> 0,
       }),
@@ -137,7 +144,7 @@ export function GameScreen({
             if (!endedRef.current) {
               endedRef.current = true;
               audio.play(ev.outcome === "success" ? "victory" : "defeat");
-              onMissionEnd(ev.outcome, engine.snapshot());
+              onMissionEnd(mission.id, ev.outcome, engine.snapshot());
             }
             break;
           case "stall":
@@ -148,7 +155,7 @@ export function GameScreen({
         }
       }
     },
-    [difficulty.id, engine, onMissionEnd],
+    [difficulty.id, engine, mission.id, onMissionEnd],
   );
 
   // Main loop: runs only while playing. Installs exactly once per playing
@@ -339,7 +346,7 @@ export function GameScreen({
                   </span>
                 ))}
               </div>
-              <PebblePuffer variant={t.variant} />
+              <TargetCreature family={t.family} variant={t.variant} />
             </div>
           );
         })}

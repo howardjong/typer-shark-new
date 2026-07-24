@@ -1,40 +1,44 @@
 import type { DifficultyConfig } from "../game/config";
-import type { LessonDefinition } from "../game/wordBanks";
+import type { MissionDefinition } from "../game/missions";
 
 interface Props {
-  lesson: LessonDefinition;
+  mission: MissionDefinition;
   difficulty: DifficultyConfig;
   onStart: () => void;
   onBack: () => void;
 }
 
-export function Briefing({ lesson, difficulty, onStart, onBack }: Props) {
+export function Briefing({ mission, difficulty, onStart, onBack }: Props) {
+  const example = mission.labels[0] ?? "a";
+  const gate = mission.kind === "current-gate";
+
   return (
     <div className="screen menu-screen">
       <div className="menu-card">
-        <h1>{lesson.title}</h1>
-        <p className="lesson-label">{lesson.lessonLabel}</p>
-        <p>
-          When a friendly fish swims in, press the letter on its label to send
-          it gently back into the current.
-        </p>
+        <p className="eyebrow">Adventure Trail</p>
+        <h1>{mission.title}</h1>
+        <p className="lesson-label">{mission.lessonLabel}</p>
+        <p>{mission.description}</p>
         <div className="briefing-example" aria-hidden="true">
           <div className="label-plate big-plate">
-            <span className="next">f</span>
+            {example.split("").map((letter, index) => (
+              <span className={index === 0 ? "next" : ""} key={`${letter}-${index}`}>
+                {letter}
+              </span>
+            ))}
           </div>
           <span className="briefing-arrow">←</span>
-          <span className="briefing-note">Press this letter!</span>
+          <span className="briefing-note">{gate ? "Redirect this label!" : "Type this label!"}</span>
         </div>
         <p className="hint-text">
-          Playing on <strong>{difficulty.label}</strong> · Keep your hands on
-          the keyboard · Press Escape to pause any time
+          Playing on <strong>{difficulty.label}</strong> · Keep your hands on the keyboard · Press Escape to pause any time
         </p>
         <div className="button-col">
           <button className="btn btn-primary btn-big" onClick={onStart} autoFocus>
-            Start
+            Start Mission
           </button>
           <button className="btn" onClick={onBack}>
-            Back
+            Return to Map
           </button>
         </div>
       </div>

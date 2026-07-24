@@ -18,8 +18,6 @@ export type MissionPhase =
 /** Timed campaign play and untimed practice share mission data, not rewards. */
 export type RunPolicy = "timed" | "practice";
 
-const WARMUP_MISSION_ID: MissionId = "warmup-first-letter";
-
 export type AppState =
   | { screen: "welcome" }
   | { screen: "keyboardCheck" }
@@ -71,12 +69,7 @@ export function reduce(state: AppState, event: AppEvent): AppState {
 
     case "PICK_DIFFICULTY":
       return state.screen === "difficulty"
-        ? {
-            screen: "briefing",
-            difficulty: event.difficulty,
-            missionId: WARMUP_MISSION_ID,
-            runPolicy: "timed",
-          }
+        ? { screen: "adventureMap", difficulty: event.difficulty }
         : state;
 
     case "VIEW_MAP":
@@ -133,7 +126,9 @@ export function reduce(state: AppState, event: AppEvent): AppState {
         : state;
 
     case "LEAVE":
-      return state.screen === "mission" ? { screen: "welcome" } : state;
+      return state.screen === "mission"
+        ? { screen: "adventureMap", difficulty: state.difficulty }
+        : state;
 
     case "MISSION_END":
       return state.screen === "mission"

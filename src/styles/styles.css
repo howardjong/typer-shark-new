@@ -216,6 +216,85 @@ p {
   color: var(--gold);
 }
 
+.eyebrow {
+  color: var(--teal);
+  font-size: 0.85em;
+  font-weight: bold;
+  letter-spacing: 0.08em;
+  margin: 0 0 8px;
+  text-transform: uppercase;
+}
+
+/* ---------- Adventure Trail map ---------- */
+
+.map-card {
+  width: min(1100px, 100%);
+  margin: auto;
+  padding: 28px;
+  text-align: center;
+}
+
+.map-intro {
+  margin: 0 auto 22px;
+}
+
+.region-list {
+  display: grid;
+  gap: 16px;
+}
+
+.region-card {
+  border: 3px solid var(--water-light);
+  border-radius: 16px;
+  padding: 16px;
+  background: rgba(13, 27, 51, 0.56);
+  text-align: left;
+}
+
+.region-card h2 {
+  color: var(--sand);
+  font-size: 1.2em;
+  margin: 0;
+}
+
+.region-card p {
+  font-size: 0.9em;
+  margin: 4px 0 12px;
+}
+
+.region-kelp-cubes h2 { color: var(--moss); }
+.region-crystal-current h2 { color: #c7b3ff; }
+
+.mission-list {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.mission-card {
+  min-height: 96px;
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 12px;
+  border: 3px solid var(--water-light);
+  border-radius: 12px;
+  background: var(--water);
+  color: var(--text);
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+}
+
+.mission-card.available { border-color: var(--teal); }
+.mission-card.completed { border-color: var(--gold); }
+.mission-card.locked { opacity: 0.62; cursor: not-allowed; }
+.mission-card:focus-visible { outline: 4px solid var(--gold); outline-offset: 2px; }
+
+.mission-marker { color: var(--gold); font-size: 1.2em; line-height: 1; }
+.mission-card-copy { display: flex; flex-direction: column; gap: 5px; }
+.mission-card-copy span { color: var(--text-dim); font-size: 0.78em; line-height: 1.25; }
+
 /* ---------- difficulty picker ---------- */
 
 .difficulty-row {
@@ -478,7 +557,7 @@ p {
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  width: 150px;
+  width: 320px;
   will-change: transform;
 }
 
@@ -487,7 +566,8 @@ p {
 .lane-2 { top: 50%; }
 .lane-3 { top: 74%; }
 
-.target .puffer {
+.target .puffer,
+.target .target-creature {
   animation: bob 2.4s ease-in-out infinite;
 }
 
@@ -732,6 +812,7 @@ p {
 /* Reduced motion (system preference or in-game "Reduced" feedback). */
 @media (prefers-reduced-motion: reduce) {
   .target .puffer,
+  .target .target-creature,
   .focus-frame {
     animation: none !important;
   }
@@ -742,6 +823,7 @@ p {
 }
 
 .reduced-feedback .target .puffer,
+.reduced-feedback .target .target-creature,
 .reduced-feedback .focus-frame {
   animation: none !important;
 }
@@ -760,5 +842,11 @@ p {
   .difficulty-row {
     flex-direction: column;
     align-items: center;
+  }
+  .map-card {
+    padding: 16px 4px;
+  }
+  .mission-list {
+    grid-template-columns: 1fr;
   }
 }

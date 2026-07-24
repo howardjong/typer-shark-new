@@ -5,10 +5,10 @@ interface Props {
   outcome: MissionOutcome;
   stats: EngineSnapshot;
   onPlayAgain: () => void;
-  onHome: () => void;
+  onMap: () => void;
 }
 
-export function ResultsCard({ outcome, stats, onPlayAgain, onHome }: Props) {
+export function ResultsCard({ outcome, stats, onPlayAgain, onMap }: Props) {
   const accuracy = accuracyPct(stats.correct, stats.accepted);
   const wpm = wordsPerMinute(stats.correct, stats.activeMs);
   const success = outcome === "success";
@@ -48,10 +48,10 @@ export function ResultsCard({ outcome, stats, onPlayAgain, onHome }: Props) {
         </dl>
         <div className="button-col">
           <button className="btn btn-primary btn-big" onClick={onPlayAgain} autoFocus>
-            {success ? "Play Again" : "Restart"}
+            {success ? "Replay This Mission" : "Restart"}
           </button>
-          <button className="btn" onClick={onHome}>
-            Return Home
+          <button className="btn" onClick={onMap}>
+            {success ? "Choose Next Path" : "Return to Map"}
           </button>
         </div>
       </div>

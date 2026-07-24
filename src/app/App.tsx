@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useReducer, useState } from "react";
 import { DIFFICULTIES } from "../game/config";
 import type { MissionOutcome, EngineSnapshot } from "../game/engine";
+import { getMission } from "../game/missions";
+import type { MissionId } from "../game/missions";
 import { accuracyPct, wordsPerMinute } from "../game/stats";
-import { WARMUP_LESSON } from "../game/wordBanks";
 import { audio } from "../audio/audio";
 import { initialState, reduce } from "../state/machine";
 import { getStorage } from "../state/storage";
@@ -11,6 +12,7 @@ import { loadProgress, recordMissionResult, saveProgress, DEFAULT_PROGRESS } fro
 import { Welcome } from "../components/Welcome";
 import { KeyboardCheck } from "../components/KeyboardCheck";
 import { DifficultyPicker } from "../components/DifficultyPicker";
+import { AdventureMap } from "../components/AdventureMap";
 import { Briefing } from "../components/Briefing";
 import { GameScreen } from "../components/GameScreen";
 import { ResultsCard } from "../components/ResultsCard";
@@ -67,12 +69,15 @@ export function App() {
   }, [caption]);
 
   const handleMissionEnd = useCallback(
-    (outcome: MissionOutcome, stats: EngineSnapshot) => {
-      const next = recordMissionResult(progress, WARMUP_LESSON.id, {
+    (missionId: MissionId, outcome: MissionOutcome, stats: EngineSnapshot) => {
+      const mission = getMission(missionId);
+      const next = recordMissionResult(progress, missionId, {
         success: outcome === "success",
         accuracy: accuracyPct(stats.correct, stats.accepted),
         wpm: wordsPerMinute(stats.correct, stats.activeMs),
         buildBits: stats.buildBits,
+        bestStreak: stats.bestStreak,
+        buildPiece: mission.buildReward,
       });
       setProgress(next);
       if (storage) saveProgress(storage, next);
@@ -132,15 +137,24 @@ export function App() {
         />
       )}
 
+      {state.screen === "adventureMap" && (
+        <AdventureMap
+          difficulty={state.difficulty}
+          progress={progress}
+          onSelectMission={(missionId) => dispatch({ type: "SELECT_MISSION", missionId, runPolicy: "timed" })}
+          onBack={() => dispatch({ type: "HOME" })}
+        />
+      )}
+
       {state.screen === "briefing" && (
         <Briefing
-          lesson={WARMUP_LESSON}
+          mission={getMission(state.missionId)}
           difficulty={DIFFICULTIES[state.difficulty]}
           onStart={() => {
             audio.init();
             dispatch({ type: "START_MISSION" });
           }}
-          onBack={() => dispatch({ type: "HOME" })}
+          onBack={() => dispatch({ type: "VIEW_MAP" })}
         />
       )}
 
@@ -148,6 +162,7 @@ export function App() {
         <GameScreen
           key={state.attempt}
           difficultyId={state.difficulty}
+          mission={getMission(state.missionId)}
           phase={state.phase}
           settings={settings}
           updateSettings={updateSettings}
@@ -162,7 +177,7 @@ export function App() {
           outcome={state.outcome}
           stats={state.stats}
           onPlayAgain={() => dispatch({ type: "PLAY_AGAIN" })}
-          onHome={() => dispatch({ type: "HOME" })}
+          onMap={() => dispatch({ type: "VIEW_MAP" })}
         />
       )}
 

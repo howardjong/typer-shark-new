@@ -247,6 +247,12 @@ export const MISSIONS: readonly MissionDefinition[] = [
   },
 ];
 
+export function getMission(missionId: MissionId): MissionDefinition {
+  const mission = MISSIONS.find((candidate) => candidate.id === missionId);
+  if (!mission) throw new Error(`Unknown mission id: ${missionId}`);
+  return mission;
+}
+
 export function isMissionUnlocked(
   mission: MissionDefinition,
   completedMissionIds: ReadonlySet<string>,

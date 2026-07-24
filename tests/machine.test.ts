@@ -18,6 +18,8 @@ describe("app state machine", () => {
     s = reduce(s, { type: "KEYBOARD_OK" });
     expect(s.screen).toBe("difficulty");
     s = reduce(s, { type: "PICK_DIFFICULTY", difficulty: "starter" });
+    expect(s.screen).toBe("adventureMap");
+    s = reduce(s, { type: "SELECT_MISSION", missionId: "warmup-first-letter", runPolicy: "timed" });
     expect(s.screen).toBe("briefing");
     s = reduce(s, { type: "START_MISSION" });
     expect(s).toMatchObject({ screen: "mission", phase: { name: "countdown", resuming: false } });
@@ -65,7 +67,10 @@ describe("app state machine", () => {
   });
 
   it("leave returns to welcome", () => {
-    expect(reduce(playingState, { type: "LEAVE" })).toEqual({ screen: "welcome" });
+    expect(reduce(playingState, { type: "LEAVE" })).toEqual({
+      screen: "adventureMap",
+      difficulty: "starter",
+    });
   });
 
   it("keeps selected mission and practice policy explicit through map selection", () => {
