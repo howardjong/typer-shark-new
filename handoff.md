@@ -2,7 +2,7 @@
 
 > **Date:** 2026-07-23  
 > **Branch:** main  
-> **Passing tests:** 51/51 · TypeScript: clean · Production build: verified
+> **Passing tests:** 75/75 · TypeScript: clean · Production build: verified
 
 ---
 
@@ -19,12 +19,12 @@ The full spec lives in [`REPLIT_AGENT_SPEC.md`](./REPLIT_AGENT_SPEC.md) (441 lin
 | Task | State |
 |------|-------|
 | #1 — Setup & review | Merged |
-| **#2 — First playable slice (Starter mission)** | **Complete ✅** |
-| #3 — Adventure Trail campaign (12 missions, all target families, Current Gates) | Proposed |
+| **#2 — First playable slice (Starter mission)** | **Complete** |
+| #3 — Adventure Trail campaign (12 missions, target families, Current Gates) | In progress — timed gates complete; gate practice, celebrations, and accessibility polish remain |
 | #4 — Deep Current and Key Camp (the two remaining game modes) | Proposed |
 | #5 — Verify & publish (quality gates + Autoscale deploy) | Proposed |
 
-The playable flow is: **Welcome → keyboard check → difficulty picker → briefing → 3-2-1 countdown → mission → results card.**
+The playable flow is: **Welcome → keyboard check → difficulty picker → Adventure map → briefing → 3-2-1 countdown → mission → results card.** Regular missions also offer untimed practice and a Build Break after a success; unlocked Current Gates are playable as timed encounters.
 
 ---
 
@@ -38,6 +38,17 @@ The detailed, implementation-ready checkpoint plan is in [`IMPLEMENTATION_PLAN.m
 - Never bundle unrelated formatting, generated audio, dependency changes, or deployment settings into a feature checkpoint. Audio generation or Autoscale publishing requires its own explicit scope and verification.
 
 The documentation checkpoint that introduced this protocol is committed as `docs: add implementation checkpoints`.
+
+### Completed implementation checkpoints
+
+- `feat: add campaign mission data and word banks`
+- `feat: generalize typing mission engine`
+- `feat: add target behaviours and reef shield`
+- `feat: add adventure progress and mission state`
+- `feat: add adventure map and mission flow`
+- `feat: add untimed mission practice`
+- `feat: add build break rewards`
+- `feat: add current gate encounters`
 
 ---
 
@@ -57,6 +68,11 @@ Plain TypeScript class — no React, no DOM. Safe to unit-test in Node. Key rule
 - **One heart per miss** regardless of the frame rate.
 - **Starter mode**: never spawns two visible targets with the same first letter. Uses bounded retry with delay rather than looping forever.
 - **Timer end (success)**: clears remaining targets without awarding bits or affecting stats.
+
+### Current Gate engine (`src/game/gateEngine.ts`)
+- A separate DOM-free deterministic engine for the three timed Current Gate finales.
+- It uses labelled foam-cube projectiles and 8/10/12 stability blocks; completing a label settles one block.
+- Gates retain the selection lock, nearest-match, pause/stall, heart-loss, and Starter ambiguity protections, but deliberately provide **no Reef Shield**.
 
 ### State machine (`src/state/machine.ts`)
 Discriminated-union `AppState`, pure `reduce(state, event)` — no side effects. All screen transitions guarded. Key states: `welcome | keyboardCheck | difficulty | briefing | mission{countdown | playing | paused} | results`.
@@ -93,6 +109,7 @@ src/
     Briefing.tsx         Lesson preview before countdown
     Countdown.tsx        3-2-1 or "Resuming…" overlay; fires COUNTDOWN_DONE
     GameScreen.tsx       RAF loop, target nodes, HUD, pause/pause-reminder, hint
+    GateScreen.tsx       RAF loop and focused Current Gate encounter UI
     Hud.tsx              Hearts (text + emoji), timer, bits, streak, pause button
     PausePanel.tsx       Resume / Slow Down / Restart / Settings / Leave
     PebblePuffer.tsx     Inline SVG block-fish, 4 colour variants
@@ -105,6 +122,8 @@ src/
     input.ts             classifyKey: filters repeats/IME/modifiers; returns kind+char
     stats.ts             accuracyPct, wordsPerMinute (null → "—" for empty/<10 s), formatStat
     engine.ts            Core simulation; see Architecture section above
+    gateEngine.ts        Deterministic Current Gate projectile/stability simulation
+    missions.ts          12-mission Adventure Trail topology and unlock definitions
   state/
     machine.ts           AppState union, initialState, reduce, all event types
     storage.ts           StorageLike interface, readJson/writeJson (corruption-safe)
@@ -120,6 +139,7 @@ scripts/
   generate-audio.mjs     Build-time ElevenLabs sound-effects generator (--force to regenerate)
 tests/
   engine.test.ts         Selection, lock, tie-break, wrong-key, collision, hearts, timing, streaks
+  gateEngine.test.ts     Gate stability, projectile cap, no-Shield, and heart-loss rules
   generator.test.ts      No-same-first-letter, max targets, bounded termination, determinism, spawn rate
   stats.test.ts          Accuracy and WPM edge cases (null, NaN, zero)
   input.test.ts          classifyKey filtering — case, repeats, modifiers, IME, dead keys
@@ -133,7 +153,7 @@ tests/
 
 ```bash
 npm run dev        # dev server on port 5000 (Vite)
-npm test           # Vitest (51 tests, ~3 s)
+npm test           # Vitest (75 tests, ~3 s)
 npm run type-check # tsc --noEmit (zero errors expected)
 npm run build      # tsc + Vite → dist/
 npm start          # serves dist/ on $PORT (default 3000); requires a build first
@@ -148,44 +168,17 @@ node scripts/generate-audio.mjs --force   # regenerates all
 
 ---
 
-## What Task #3 needs to build
+## Remaining implementation work
 
-The spec defines **12 missions** across three modes. The Starter warm-up mission is the only one implemented. Task #3 must add:
+Adventure Trail now has its complete 12-mission data model, unlock/replay persistence, ordinary target families, Reef Shield, map flow, regular untimed practice, Build Break, and the three timed Current Gate encounters. The next isolated checkpoint is **C1b**:
 
-### Modes
-| Mode | Description |
-|------|-------------|
-| **Starter** | Single-letter targets, no-same-first-letter constraint, 0.75× speed for selected target |
-| **Standard** | Full words (3–6 letters), any number of same-first-letters allowed |
-| **Swift** | Full words at higher speed, tighter spawn intervals |
+- Add stationary Current Gate practice. It must not award Build Bits, alter best scores, unlock missions, consume hearts, or display a timer.
+- Add a brief skippable region-build celebration after a Current Gate success.
+- Keep the three difficulties distinct from the three game modes. Starter / Standard / Swift remain pacing rules; Adventure Trail / Deep Current / Key Camp are game modes.
 
-### Target families (word banks)
-The spec lists these groups; each must be added to `src/game/wordBanks.ts` and covered by `validateLetterBank`:
-- Home row letters (`a s d f g h j k l`)
-- Top row (`q w e r t y u i o p`)
-- Bottom row (`z x c v b n m`)
-- All letters combined
-- Short CVC words
-- Common sight words
-- Mixed-length challenge words
+After C1b, complete C2's measured variable-label placement, responsive/reduced-motion behaviour, live messages, and manual accessibility pass. Then implement Deep Current (D1), Key Camp (E1), and release hardening (E2) according to `IMPLEMENTATION_PLAN.md`.
 
-### Mission definitions
-Add a `MISSIONS` array to `src/game/config.ts` (or a new `src/game/missions.ts`). Each mission needs:
-```ts
-{
-  id: string;           // e.g. "m1-home-row"
-  title: string;        // display name
-  description: string;  // briefing text
-  letters: string[];    // word bank subset
-  mode: DifficultyId;   // "starter" | "standard" | "swift"
-  durationMs: number;
-  unlockAfter?: string; // mission id gate (if any)
-}
-```
-Progress gating is already handled by `recordMissionResult` in `src/state/progress.ts`.
-
-### ElevenLabs audio for Task #3
-If new word-family voiceovers or briefing narration are required by the spec, add entries to `scripts/generate-audio.mjs` and run it. No browser changes needed.
+The reviewed banks and mission definitions live in `src/game/wordBanks.ts` and `src/game/missions.ts`; do not reintroduce the old letter-only mission model.
 
 ---
 

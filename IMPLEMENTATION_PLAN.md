@@ -37,19 +37,20 @@ This avoids the handoff's ambiguous phrase “three modes.” Task #3 should com
 
 Every row below is a **functional commit boundary**. Do not start the next row with uncommitted implementation work. At each checkpoint: run the listed focused test(s), inspect `git diff --check` and `git status`, stage only the listed changed files, and create the specified commit. Run the full quality gates at the campaign, mode, and release boundaries.
 
-| Checkpoint | Functional block | Key work | Minimum verification | Commit message |
-| --- | --- | --- | --- | --- |
-| A1 | Campaign data and banks | Add mission/region/run types; define the 12-mission branch/rejoin topology; add reviewed banks and reusable validation. | New mission topology and bank-validator tests. | `feat: add campaign mission data and word banks` |
-| A2 | Generalized ordinary-target engine | Replace letter-only `EngineOptions` with a deterministic lesson/run definition; preserve selection, timing, collision, stall, caps, and ambiguity rules. | Existing engine/generator tests plus generalized spawn tests. | `feat: generalize typing mission engine` |
-| A3 | Target behaviours and Reef Shield | Add family data, two-stage Shellback flow, hidden-label reservation, Treasure Bubble policy, and the fully constrained Reef Shield. | Target-sequence, ambiguity, Shield, and statistics tests. | `feat: add target behaviours and reef shield` |
-| B1 | Adventure state and persistence | Add map/mission-selection state, selected run policy, progression migration, route unlocks, replayability, and build-piece persistence. | Reducer and progress migration/unlock tests. | `feat: add adventure progress and mission state` |
-| B2 | Adventure map and regular mission UI | Build the map, mission briefing, data-driven `GameScreen`, creature variants, results actions, and defeat choices. | Component/state tests; keyboard-only manual pass. | `feat: add adventure map and mission flow` |
-| B3 | Practice, Build Break, and celebrations | Add untimed practice, stationary Build Break, cosmetic build reward, and skippable region celebration. | Practice/Build Break side-effect tests. | `feat: add practice and build rewards` |
-| C1 | Current Gate finales | Add all three gate definitions, gate run engine/UI, and gate practice; unlock the next region only on completion. | Gate stability, cap, practice, unlock, and no-Shield tests. | `feat: add current gate finales` |
-| C2 | Campaign accessibility and visual completion | Finish measured label placement, responsive variants, safe CSS/SVG art, live messages, and reduced-motion behaviour for Adventure Trail. | Presentation checks plus 200% zoom and reduced-motion manual pass. | `feat: polish accessible adventure campaign` |
-| D1 | Deep Current | Add the post-four-mission unlock, bounded endless escalation, 60-second breather, and local distance best. | Deep Current bounds, breather, and persistence tests. | `feat: add deep current mode` |
-| E1 | Key Camp | Add posture/finger/letter/word drills, keyboard/hands guide, repeat/skip/slow controls, and `;` acceptance only in this mode. | Lesson sequence and input-policy tests; keyboard-only manual pass. | `feat: add key camp tutor` |
-| E2 | Release hardening | Complete cross-mode accessibility and failure-path checks, production smoke tooling, and deployment-readiness documentation. | Full `npm test`, `npm run type-check`, `npm run build`, production smoke, and required manual matrix. | `chore: complete v1 release checks` |
+| Checkpoint | Functional block | Key work | Minimum verification | Commit message | Status |
+| --- | --- | --- | --- | --- | --- |
+| A1 | Campaign data and banks | Add mission/region/run types; define the 12-mission branch/rejoin topology; add reviewed banks and reusable validation. | New mission topology and bank-validator tests. | `feat: add campaign mission data and word banks` | Complete |
+| A2 | Generalized ordinary-target engine | Replace letter-only `EngineOptions` with a deterministic lesson/run definition; preserve selection, timing, collision, stall, caps, and ambiguity rules. | Existing engine/generator tests plus generalized spawn tests. | `feat: generalize typing mission engine` | Complete |
+| A3 | Target behaviours and Reef Shield | Add family data, two-stage Shellback flow, hidden-label reservation, Treasure Bubble policy, and the fully constrained Reef Shield. | Target-sequence, ambiguity, Shield, and statistics tests. | `feat: add target behaviours and reef shield` | Complete |
+| B1 | Adventure state and persistence | Add map/mission-selection state, selected run policy, progression migration, route unlocks, replayability, and build-piece persistence. | Reducer and progress migration/unlock tests. | `feat: add adventure progress and mission state` | Complete |
+| B2 | Adventure map and regular mission UI | Build the map, mission briefing, data-driven `GameScreen`, creature variants, results actions, and defeat choices. | Component/state tests; keyboard-only manual pass. | `feat: add adventure map and mission flow` | Complete |
+| B3 | Practice and Build Break | Add untimed practice, stationary Build Break, and cosmetic build rewards. Region celebrations are deliberately split into C1b so this remains an independently usable checkpoint. | Practice/Build Break side-effect tests. | `feat: add practice and build rewards` | Complete |
+| C1a | Timed Current Gate encounters | Add all three gate definitions and the dedicated gate run engine/UI; unlock the next region only on gate completion. | Gate stability, cap, unlock, and no-Shield tests. | `feat: add current gate encounters` | Complete |
+| C1b | Gate practice and region celebrations | Add stationary, non-persistent gate practice and short skippable region build celebrations. | Gate-practice side-effect and celebration-flow tests. | `feat: add gate practice and region celebrations` | Next |
+| C2 | Campaign accessibility and visual completion | Finish measured label placement, responsive variants, safe CSS/SVG art, live messages, and reduced-motion behaviour for Adventure Trail. | Presentation checks plus 200% zoom and reduced-motion manual pass. | `feat: polish accessible adventure campaign` | Pending |
+| D1 | Deep Current | Add the post-four-mission unlock, bounded endless escalation, 60-second breather, and local distance best. | Deep Current bounds, breather, and persistence tests. | `feat: add deep current mode` | Pending |
+| E1 | Key Camp | Add posture/finger/letter/word drills, keyboard/hands guide, repeat/skip/slow controls, and `;` acceptance only in this mode. | Lesson sequence and input-policy tests; keyboard-only manual pass. | `feat: add key camp tutor` | Pending |
+| E2 | Release hardening | Complete cross-mode accessibility and failure-path checks, production smoke tooling, and deployment-readiness documentation. | Full `npm test`, `npm run type-check`, `npm run build`, production smoke, and required manual matrix. | `chore: complete v1 release checks` | Pending |
 
 ### Checkpoint details
 
@@ -63,7 +64,7 @@ Keep the engine DOM-free. Extend it with target-family behaviour, two-stage Shel
 
 #### B1–C2 — complete Adventure Trail
 
-Add map/progress state, then mission UI and results, followed by practice/Build Break/celebrations. Current Gates use 8/10/12 stability blocks with one-letter, 2–3 letter, and 3–5 letter projectiles; gate practice is stationary and has no permanent side effects. Finish the campaign's measured label placement and accessibility polish before considering Adventure Trail complete.
+Add map/progress state, then mission UI and results, followed by practice and Build Break. Timed Current Gates use 8/10/12 stability blocks with one-letter, 2–3 letter, and 3–5 letter projectiles; the next checkpoint adds their stationary, non-persistent practice and short region celebrations. Finish the campaign's measured label placement and accessibility polish before considering Adventure Trail complete.
 
 #### D1–E2 — remaining complete-v1 modes and hardening
 

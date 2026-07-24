@@ -635,6 +635,50 @@ p {
   color: var(--gold);
 }
 
+/* ---------- Current Gate encounter ---------- */
+
+.gate-screen { background: linear-gradient(180deg, #3d3a72 0%, var(--water) 55%, var(--navy-deep) 100%); }
+
+.gate-backdrop {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding-left: 26px;
+  pointer-events: none;
+}
+
+.current-gate-art {
+  color: var(--violet);
+  font-size: 150px;
+  opacity: 0.38;
+  text-shadow: 0 0 0 var(--navy-deep), 7px 7px 0 var(--navy-deep);
+}
+
+.gate-hud {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 16px;
+  border-bottom: 3px solid var(--violet);
+  background: rgba(13, 27, 51, 0.88);
+  color: var(--text);
+}
+
+.gate-stability { display: flex; align-items: center; gap: 8px; color: var(--text); font-weight: bold; }
+.gate-stability progress { accent-color: var(--violet); width: 150px; }
+.gate-playfield { top: 72px; }
+.foam-cube { width: 54px; height: 54px; border: 6px solid #c9f7ee; background: #6fbcff; box-shadow: inset 8px 8px 0 rgba(255, 255, 255, 0.35); }
+.foam-cube.variant-1 { background: var(--teal); }
+.foam-cube.variant-2 { background: var(--violet); }
+
 /* ---------- play field & targets ---------- */
 
 .playfield {
@@ -949,4 +993,5 @@ p {
     align-items: flex-start;
     flex-direction: column;
   }
+  .gate-hud { align-items: flex-start; flex-wrap: wrap; }
 }

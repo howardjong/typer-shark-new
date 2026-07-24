@@ -44,7 +44,7 @@ export function AdventureMap({
                 {MISSIONS.filter((mission) => mission.region === region).map((mission) => {
                   const available = unlocked.has(mission.id);
                   const completed = progress.completedMissions.includes(mission.id);
-                  const playable = available && mission.kind !== "current-gate";
+                  const playable = available;
                   return (
                     <div className="mission-action" key={mission.id}>
                       <button
@@ -54,9 +54,7 @@ export function AdventureMap({
                         aria-label={
                           playable
                             ? `${mission.title}${completed ? ", completed and replayable" : ", ready to play"}`
-                            : available
-                              ? `${mission.title}, Current Gate encounter arrives in the next reef update`
-                              : `${mission.title}, locked until an earlier path is complete`
+                            : `${mission.title}, locked until an earlier path is complete`
                         }
                       >
                         <span className="mission-marker" aria-hidden="true">

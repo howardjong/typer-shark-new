@@ -19,6 +19,7 @@ import { GameScreen } from "../components/GameScreen";
 import { ResultsCard } from "../components/ResultsCard";
 import { PracticeScreen } from "../components/PracticeScreen";
 import { BuildBreakScreen } from "../components/BuildBreakScreen";
+import { GateScreen } from "../components/GateScreen";
 import { SettingsPanel } from "../components/SettingsPanel";
 
 export function App() {
@@ -172,8 +173,22 @@ export function App() {
         />
       )}
 
-      {state.screen === "mission" && (
+      {state.screen === "mission" && getMission(state.missionId).kind === "regular" && (
         <GameScreen
+          key={state.attempt}
+          difficultyId={state.difficulty}
+          mission={getMission(state.missionId)}
+          phase={state.phase}
+          settings={settings}
+          updateSettings={updateSettings}
+          dispatch={dispatch}
+          onMissionEnd={handleMissionEnd}
+          onOpenSettings={() => setShowSettings(true)}
+        />
+      )}
+
+      {state.screen === "mission" && getMission(state.missionId).kind === "current-gate" && (
+        <GateScreen
           key={state.attempt}
           difficultyId={state.difficulty}
           mission={getMission(state.missionId)}
