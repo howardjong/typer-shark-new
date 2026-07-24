@@ -70,6 +70,10 @@ describe("app state machine", () => {
     expect(reduce(results, { type: "PAUSE", reason: "user" })).toBe(results);
     const again = reduce(results, { type: "PLAY_AGAIN" });
     expect(again).toMatchObject({ screen: "mission", phase: { name: "countdown" } });
+    expect(reduce(results, { type: "PRACTICE_FROM_RESULTS" })).toMatchObject({
+      screen: "practice",
+      missionId: "warmup-first-letter",
+    });
   });
 
   it("leave returns to welcome", () => {

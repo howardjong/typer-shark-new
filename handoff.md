@@ -2,7 +2,7 @@
 
 > **Date:** 2026-07-23  
 > **Branch:** main  
-> **Passing tests:** 92/92 · TypeScript: clean · Production build: verified
+> **Passing tests:** 93/93 · TypeScript: clean · Production build: verified
 
 ---
 
@@ -54,6 +54,7 @@ The documentation checkpoint that introduced this protocol is committed as `docs
 - `feat: add deep current mode`
 - `feat: add key camp tutor`
 - `chore: add release smoke checks`
+- `feat: show pebble bay build rewards`
 
 ---
 
@@ -121,6 +122,7 @@ src/
     DeepCurrentResults.tsx Distance and local-best feedback
     KeyCampScreen.tsx    Untimed posture-to-words typing tutor
     KeyboardGuide.tsx    Large highlighted keyboard and illustrated hand guide
+    PebbleBayBuilds.tsx  Visible cosmetic settlement pieces earned in campaign play
     Hud.tsx              Hearts (text + emoji), timer, bits, streak, pause button
     PausePanel.tsx       Resume / Slow Down / Restart / Settings / Leave
     PebblePuffer.tsx     Inline SVG block-fish, 4 colour variants
@@ -163,6 +165,7 @@ tests/
   deepCurrentEngine.test.ts Bounded pace tiers, target cap, and breather rules
   keyCampLessons.test.ts   Tutor lesson order and finger-hint data
   keyCampScreen.test.tsx   Semicolon drill and tutor-control interaction
+  pebbleBayBuilds.test.tsx Durable cosmetic build rendering
   generator.test.ts      No-same-first-letter, max targets, bounded termination, determinism, spawn rate
   stats.test.ts          Accuracy and WPM edge cases (null, NaN, zero)
   input.test.ts          classifyKey filtering — case, repeats, modifiers, IME, dead keys
@@ -176,7 +179,7 @@ tests/
 
 ```bash
 npm run dev        # dev server on port 5000 (Vite)
-npm test           # Vitest (92 tests, ~3 s)
+npm test           # Vitest (93 tests, ~3 s)
 npm run type-check # tsc --noEmit (zero errors expected)
 npm run build      # tsc + Vite → dist/
 npm start          # serves dist/ on $PORT (default 3000); requires a build first

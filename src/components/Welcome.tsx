@@ -1,11 +1,12 @@
 interface Props {
   buildBits: number;
+  buildPieces: readonly string[];
   onPlay: () => void;
   onKeyCamp: () => void;
   onSettings: () => void;
 }
 
-export function Welcome({ buildBits, onPlay, onKeyCamp, onSettings }: Props) {
+export function Welcome({ buildBits, buildPieces, onPlay, onKeyCamp, onSettings }: Props) {
   return (
     <div className="screen menu-screen welcome">
       <div className="menu-card">
@@ -36,6 +37,7 @@ export function Welcome({ buildBits, onPlay, onKeyCamp, onSettings }: Props) {
             Build Bits collected: <strong>{buildBits}</strong>
           </p>
         )}
+        {buildPieces.length > 0 && <p className="hint-text">Pebble Bay has {buildPieces.length} build{buildPieces.length === 1 ? "" : "s"}.</p>}
       </div>
     </div>
   );

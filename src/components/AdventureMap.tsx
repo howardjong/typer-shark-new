@@ -3,6 +3,7 @@ import { MISSIONS } from "../game/missions";
 import type { RegionId } from "../game/missions";
 import type { Progress } from "../state/progress";
 import { isDeepCurrentUnlocked } from "../state/progress";
+import { PebbleBayBuilds } from "./PebbleBayBuilds";
 
 interface Props {
   difficulty: DifficultyId;
@@ -80,6 +81,7 @@ export function AdventureMap({
             </section>
           ))}
         </div>
+        <PebbleBayBuilds pieces={progress.buildPieces} />
         <p className="build-bits-total">Build Bits collected: <strong>{progress.buildBits}</strong></p>
         <section className="deep-current-card" aria-labelledby="deep-current-title">
           <div>

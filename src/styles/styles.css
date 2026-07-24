@@ -216,6 +216,24 @@ p {
   color: var(--gold);
 }
 
+.pebble-bay-builds {
+  margin: 18px 0;
+  padding: 14px;
+  border: 3px solid var(--sand);
+  border-radius: 12px;
+  background: rgba(13, 27, 51, 0.42);
+}
+.pebble-bay-builds h2 { margin: 0 0 6px; font-size: 1.1em; }
+.pebble-bay-builds p { margin: 6px 0 0; font-size: 0.85em; }
+.pebble-bay-scene { display: flex; min-height: 56px; align-items: end; justify-content: center; gap: 5px; }
+.bay-piece { display: block; border: 4px solid #c9f7ee; box-shadow: inset 5px 5px 0 rgba(255, 255, 255, 0.25); }
+.base-piece { width: 82px; height: 28px; background: var(--sand); }
+.reward-piece { width: 32px; height: 42px; background: var(--teal); }
+.reward-1 { height: 56px; background: var(--coral); }
+.reward-2 { height: 34px; background: var(--moss); }
+.reward-3 { height: 50px; background: var(--violet); }
+.reward-4 { height: 46px; background: var(--gold); }
+
 .eyebrow {
   color: var(--teal);
   font-size: 0.85em;

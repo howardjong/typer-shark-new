@@ -144,6 +144,7 @@ export function App() {
       {state.screen === "welcome" && (
         <Welcome
           buildBits={progress.buildBits}
+          buildPieces={progress.buildPieces}
           onPlay={() => {
             audio.init();
             dispatch({ type: "PLAY" });
@@ -302,6 +303,7 @@ export function App() {
           runPolicy={state.runPolicy}
           stats={state.stats}
           onPlayAgain={() => dispatch({ type: "PLAY_AGAIN" })}
+          onPractice={state.runPolicy === "timed" ? () => dispatch({ type: "PRACTICE_FROM_RESULTS" }) : undefined}
           onBuildBreak={
             state.runPolicy === "timed" && state.outcome === "success" && getMission(state.missionId).kind === "regular"
               ? () => dispatch({ type: "START_BUILD_BREAK" })

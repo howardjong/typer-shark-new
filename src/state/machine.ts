@@ -91,6 +91,7 @@ export type AppEvent =
   | { type: "START_MISSION" }
   | { type: "PRACTICE_END"; stats: EngineSnapshot }
   | { type: "PRACTICE_RESTART" }
+  | { type: "PRACTICE_FROM_RESULTS" }
   | { type: "START_BUILD_BREAK" }
   | { type: "BUILD_BREAK_END" }
   | { type: "BUILD_BREAK_RESTART" }
@@ -188,6 +189,16 @@ export function reduce(state: AppState, event: AppEvent): AppState {
 
     case "PRACTICE_RESTART":
       return state.screen === "practice" ? { ...state, attempt: state.attempt + 1 } : state;
+
+    case "PRACTICE_FROM_RESULTS":
+      return state.screen === "results" && state.runPolicy === "timed"
+        ? {
+            screen: "practice",
+            difficulty: state.difficulty,
+            missionId: state.missionId,
+            attempt: 1,
+          }
+        : state;
 
     case "START_BUILD_BREAK":
       return state.screen === "results" && state.runPolicy === "timed" && state.outcome === "success"
