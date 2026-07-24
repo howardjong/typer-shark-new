@@ -16,6 +16,7 @@ import { AdventureMap } from "../components/AdventureMap";
 import { Briefing } from "../components/Briefing";
 import { GameScreen } from "../components/GameScreen";
 import { ResultsCard } from "../components/ResultsCard";
+import { PracticeScreen } from "../components/PracticeScreen";
 import { SettingsPanel } from "../components/SettingsPanel";
 
 export function App() {
@@ -142,6 +143,7 @@ export function App() {
           difficulty={state.difficulty}
           progress={progress}
           onSelectMission={(missionId) => dispatch({ type: "SELECT_MISSION", missionId, runPolicy: "timed" })}
+          onPracticeMission={(missionId) => dispatch({ type: "SELECT_MISSION", missionId, runPolicy: "practice" })}
           onBack={() => dispatch({ type: "HOME" })}
         />
       )}
@@ -150,6 +152,7 @@ export function App() {
         <Briefing
           mission={getMission(state.missionId)}
           difficulty={DIFFICULTIES[state.difficulty]}
+          runPolicy={state.runPolicy}
           onStart={() => {
             audio.init();
             dispatch({ type: "START_MISSION" });
@@ -172,9 +175,21 @@ export function App() {
         />
       )}
 
+      {state.screen === "practice" && (
+        <PracticeScreen
+          key={state.attempt}
+          mission={getMission(state.missionId)}
+          onFinish={(stats) => dispatch({ type: "PRACTICE_END", stats })}
+          onRestart={() => dispatch({ type: "PRACTICE_RESTART" })}
+          onLeave={() => dispatch({ type: "LEAVE" })}
+          onOpenSettings={() => setShowSettings(true)}
+        />
+      )}
+
       {state.screen === "results" && (
         <ResultsCard
           outcome={state.outcome}
+          runPolicy={state.runPolicy}
           stats={state.stats}
           onPlayAgain={() => dispatch({ type: "PLAY_AGAIN" })}
           onMap={() => dispatch({ type: "VIEW_MAP" })}

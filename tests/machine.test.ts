@@ -90,9 +90,28 @@ describe("app state machine", () => {
     });
     const mission = reduce(briefing, { type: "START_MISSION" });
     expect(mission).toMatchObject({
-      screen: "mission",
+      screen: "practice",
       missionId: "kelp-shellback",
-      runPolicy: "practice",
     });
+  });
+
+  it("keeps untimed practice out of the timed mission state and repeats it directly", () => {
+    const practice = reduce(
+      { screen: "adventureMap" as const, difficulty: "starter" as const },
+      { type: "SELECT_MISSION", missionId: "warmup-first-letter", runPolicy: "practice" },
+    );
+    const active = reduce(practice, { type: "START_MISSION" });
+    expect(active).toMatchObject({ screen: "practice", attempt: 1 });
+    if (active.screen !== "practice") throw new Error("expected practice state");
+    const results = reduce(active, {
+      type: "PRACTICE_END",
+      stats: {
+        hearts: 0, timeLeftMs: 0, activeMs: 20_000, correct: 8, accepted: 9,
+        streak: 1, bestStreak: 2, completed: 2, buildBits: 0,
+        shieldCharge: 0, shieldReady: false, ended: "success",
+      },
+    });
+    expect(results).toMatchObject({ screen: "results", runPolicy: "practice" });
+    expect(reduce(results, { type: "PLAY_AGAIN" })).toMatchObject({ screen: "practice" });
   });
 });

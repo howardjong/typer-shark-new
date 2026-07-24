@@ -33,6 +33,12 @@ export type AppState =
       phase: MissionPhase;
     }
   | {
+      screen: "practice";
+      difficulty: DifficultyId;
+      missionId: MissionId;
+      attempt: number;
+    }
+  | {
       screen: "results";
       difficulty: DifficultyId;
       missionId: MissionId;
@@ -48,6 +54,8 @@ export type AppEvent =
   | { type: "VIEW_MAP" }
   | { type: "SELECT_MISSION"; missionId: MissionId; runPolicy: RunPolicy }
   | { type: "START_MISSION" }
+  | { type: "PRACTICE_END"; stats: EngineSnapshot }
+  | { type: "PRACTICE_RESTART" }
   | { type: "COUNTDOWN_DONE" }
   | { type: "PAUSE"; reason: PauseReason }
   | { type: "RESUME" }
@@ -89,15 +97,37 @@ export function reduce(state: AppState, event: AppEvent): AppState {
 
     case "START_MISSION":
       return state.screen === "briefing"
+        ? state.runPolicy === "practice"
+          ? {
+              screen: "practice",
+              difficulty: state.difficulty,
+              missionId: state.missionId,
+              attempt: 1,
+            }
+          : {
+              screen: "mission",
+              difficulty: state.difficulty,
+              missionId: state.missionId,
+              runPolicy: state.runPolicy,
+              attempt: 1,
+              phase: { name: "countdown", resuming: false },
+            }
+        : state;
+
+    case "PRACTICE_END":
+      return state.screen === "practice"
         ? {
-            screen: "mission",
+            screen: "results",
             difficulty: state.difficulty,
             missionId: state.missionId,
-            runPolicy: state.runPolicy,
-            attempt: 1,
-            phase: { name: "countdown", resuming: false },
+            runPolicy: "practice",
+            outcome: "success",
+            stats: event.stats,
           }
         : state;
+
+    case "PRACTICE_RESTART":
+      return state.screen === "practice" ? { ...state, attempt: state.attempt + 1 } : state;
 
     case "COUNTDOWN_DONE":
       return state.screen === "mission" && state.phase.name === "countdown"
@@ -126,7 +156,7 @@ export function reduce(state: AppState, event: AppEvent): AppState {
         : state;
 
     case "LEAVE":
-      return state.screen === "mission"
+      return state.screen === "mission" || state.screen === "practice"
         ? { screen: "adventureMap", difficulty: state.difficulty }
         : state;
 
@@ -144,19 +174,27 @@ export function reduce(state: AppState, event: AppEvent): AppState {
 
     case "PLAY_AGAIN":
       return state.screen === "results"
-        ? {
-            screen: "mission",
-            difficulty: state.difficulty,
-            missionId: state.missionId,
-            runPolicy: state.runPolicy,
-            attempt: 1,
-            phase: { name: "countdown", resuming: false },
-          }
+        ? state.runPolicy === "practice"
+          ? {
+              screen: "practice",
+              difficulty: state.difficulty,
+              missionId: state.missionId,
+              attempt: 1,
+            }
+          : {
+              screen: "mission",
+              difficulty: state.difficulty,
+              missionId: state.missionId,
+              runPolicy: state.runPolicy,
+              attempt: 1,
+              phase: { name: "countdown", resuming: false },
+            }
         : state;
 
     case "HOME":
       return state.screen === "results" || state.screen === "difficulty" ||
-        state.screen === "briefing" || state.screen === "keyboardCheck" || state.screen === "adventureMap"
+        state.screen === "briefing" || state.screen === "keyboardCheck" || state.screen === "adventureMap" ||
+        state.screen === "practice"
         ? { screen: "welcome" }
         : state;
 

@@ -7,6 +7,7 @@ interface Props {
   difficulty: DifficultyId;
   progress: Progress;
   onSelectMission: (missionId: (typeof MISSIONS)[number]["id"]) => void;
+  onPracticeMission: (missionId: (typeof MISSIONS)[number]["id"]) => void;
   onBack: () => void;
 }
 
@@ -18,7 +19,13 @@ const REGION_INFO: Record<RegionId, { title: string; description: string }> = {
 
 const REGIONS: readonly RegionId[] = ["sunlit-shelf", "kelp-cubes", "crystal-current"];
 
-export function AdventureMap({ difficulty, progress, onSelectMission, onBack }: Props) {
+export function AdventureMap({
+  difficulty,
+  progress,
+  onSelectMission,
+  onPracticeMission,
+  onBack,
+}: Props) {
   const unlocked = new Set(progress.unlockedMissionIds);
 
   return (
@@ -39,27 +46,33 @@ export function AdventureMap({ difficulty, progress, onSelectMission, onBack }: 
                   const completed = progress.completedMissions.includes(mission.id);
                   const playable = available && mission.kind !== "current-gate";
                   return (
-                    <button
-                      key={mission.id}
-                      className={`mission-card${playable ? " available" : " locked"}${completed ? " completed" : ""}`}
-                      disabled={!playable}
-                      onClick={() => onSelectMission(mission.id)}
-                      aria-label={
-                        playable
-                          ? `${mission.title}${completed ? ", completed and replayable" : ", ready to play"}`
-                          : available
-                            ? `${mission.title}, Current Gate encounter arrives in the next reef update`
-                          : `${mission.title}, locked until an earlier path is complete`
-                      }
-                    >
-                      <span className="mission-marker" aria-hidden="true">
-                        {completed ? "◆" : playable ? "●" : "○"}
-                      </span>
-                      <span className="mission-card-copy">
-                        <strong>{mission.title}</strong>
-                        <span>{mission.kind === "current-gate" ? "Current Gate" : mission.lessonLabel}</span>
-                      </span>
-                    </button>
+                    <div className="mission-action" key={mission.id}>
+                      <button
+                        className={`mission-card${playable ? " available" : " locked"}${completed ? " completed" : ""}`}
+                        disabled={!playable}
+                        onClick={() => onSelectMission(mission.id)}
+                        aria-label={
+                          playable
+                            ? `${mission.title}${completed ? ", completed and replayable" : ", ready to play"}`
+                            : available
+                              ? `${mission.title}, Current Gate encounter arrives in the next reef update`
+                              : `${mission.title}, locked until an earlier path is complete`
+                        }
+                      >
+                        <span className="mission-marker" aria-hidden="true">
+                          {completed ? "◆" : playable ? "●" : "○"}
+                        </span>
+                        <span className="mission-card-copy">
+                          <strong>{mission.title}</strong>
+                          <span>{mission.kind === "current-gate" ? "Current Gate" : mission.lessonLabel}</span>
+                        </span>
+                      </button>
+                      {available && mission.kind === "regular" && (
+                        <button className="mission-practice" onClick={() => onPracticeMission(mission.id)}>
+                          Practise without timer
+                        </button>
+                      )}
+                    </div>
                   );
                 })}
               </div>

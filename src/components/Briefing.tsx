@@ -1,14 +1,16 @@
 import type { DifficultyConfig } from "../game/config";
 import type { MissionDefinition } from "../game/missions";
+import type { RunPolicy } from "../state/machine";
 
 interface Props {
   mission: MissionDefinition;
   difficulty: DifficultyConfig;
+  runPolicy: RunPolicy;
   onStart: () => void;
   onBack: () => void;
 }
 
-export function Briefing({ mission, difficulty, onStart, onBack }: Props) {
+export function Briefing({ mission, difficulty, runPolicy, onStart, onBack }: Props) {
   const example = mission.labels[0] ?? "a";
   const gate = mission.kind === "current-gate";
 
@@ -31,11 +33,13 @@ export function Briefing({ mission, difficulty, onStart, onBack }: Props) {
           <span className="briefing-note">{gate ? "Redirect this label!" : "Type this label!"}</span>
         </div>
         <p className="hint-text">
-          Playing on <strong>{difficulty.label}</strong> · Keep your hands on the keyboard · Press Escape to pause any time
+          {runPolicy === "practice"
+            ? "Practise without a timer · Take one stationary label at a time · Press Escape to pause"
+            : <>Playing on <strong>{difficulty.label}</strong> · Keep your hands on the keyboard · Press Escape to pause any time</>}
         </p>
         <div className="button-col">
           <button className="btn btn-primary btn-big" onClick={onStart} autoFocus>
-            Start Mission
+            {runPolicy === "practice" ? "Start Practise" : "Start Mission"}
           </button>
           <button className="btn" onClick={onBack}>
             Return to Map
