@@ -22,8 +22,8 @@ describe("Adventure Trail mission data", () => {
 
     expect(isMissionUnlocked(sunlitTop, new Set(["warmup-first-letter"]))).toBe(true);
     expect(isMissionUnlocked(sunlitWords, new Set(["warmup-first-letter"]))).toBe(true);
-    expect(isMissionUnlocked(sunlitGate, new Set(["sunlit-top-row"]))).toBe(true);
-    expect(isMissionUnlocked(sunlitGate, new Set(["sunlit-short-words"]))).toBe(true);
+    expect(isMissionUnlocked(sunlitGate, new Set(["warmup-first-letter", "sunlit-top-row"]))).toBe(true);
+    expect(isMissionUnlocked(sunlitGate, new Set(["warmup-first-letter", "sunlit-short-words"]))).toBe(true);
     expect(isMissionUnlocked(sunlitGate, new Set())).toBe(false);
   });
 

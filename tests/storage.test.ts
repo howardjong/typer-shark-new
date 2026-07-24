@@ -1,7 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { readJson, writeJson, StorageLike } from "../src/state/storage";
 import { DEFAULT_SETTINGS, loadSettings, sanitizeSettings, saveSettings, SETTINGS_KEY } from "../src/state/settings";
-import { DEFAULT_PROGRESS, loadProgress, recordMissionResult, sanitizeProgress } from "../src/state/progress";
+import {
+  DEFAULT_PROGRESS,
+  loadProgress,
+  recordDeepCurrentDistance,
+  recordMissionResult,
+  sanitizeProgress,
+  unlockedMissionIdsFor,
+} from "../src/state/progress";
 
 class FakeStorage implements StorageLike {
   map = new Map<string, string>();
@@ -67,18 +74,42 @@ describe("progress persistence", () => {
     expect(p.completedMissions).toEqual(["ok"]);
     expect(p.buildBits).toBe(0);
     expect(p.best.m.accuracy).toBeNull();
+    expect(p.best.m.stars).toBe(0);
+    expect(p.buildPieces).toEqual([]);
   });
   it("records mission results keeping bests", () => {
     let p = DEFAULT_PROGRESS;
-    p = recordMissionResult(p, "m1", { success: true, accuracy: 80, wpm: 10, buildBits: 40 });
-    p = recordMissionResult(p, "m1", { success: true, accuracy: 70, wpm: 15, buildBits: 20 });
-    expect(p.best.m1).toEqual({ accuracy: 80, wpm: 15 });
+    p = recordMissionResult(p, "m1", {
+      success: true, accuracy: 80, wpm: 10, buildBits: 40, bestStreak: 4, buildPiece: "warm arch",
+    });
+    p = recordMissionResult(p, "m1", {
+      success: true, accuracy: 70, wpm: 15, buildBits: 20, bestStreak: 6, buildPiece: "warm arch",
+    });
+    expect(p.best.m1).toEqual({ accuracy: 80, wpm: 15, stars: 1, bestStreak: 6 });
     expect(p.buildBits).toBe(60);
     expect(p.completedMissions).toEqual(["m1"]);
+    expect(p.buildPieces).toEqual(["warm arch"]);
   });
   it("a failed attempt never removes completion", () => {
     let p = recordMissionResult(DEFAULT_PROGRESS, "m1", { success: true, accuracy: 90, wpm: 12, buildBits: 10 });
     p = recordMissionResult(p, "m1", { success: false, accuracy: 50, wpm: null, buildBits: 5 });
     expect(p.completedMissions).toEqual(["m1"]);
+  });
+  it("migrates older progress and derives branch unlocks from durable completions", () => {
+    const migrated = sanitizeProgress({
+      completedMissions: ["warmup-first-letter"],
+      best: { "warmup-first-letter": { accuracy: 96, wpm: 12 } },
+      buildBits: 20,
+    });
+    expect(migrated.unlockedMissionIds).toEqual(
+      expect.arrayContaining(["warmup-first-letter", "sunlit-top-row", "sunlit-short-words"]),
+    );
+    expect(migrated.best["warmup-first-letter"]).toMatchObject({ stars: 3, bestStreak: 0 });
+    expect(unlockedMissionIdsFor(["warmup-first-letter", "sunlit-top-row"])).toContain("sunlit-gate");
+  });
+  it("records a Deep Current distance without changing campaign completion", () => {
+    const p = recordDeepCurrentDistance(DEFAULT_PROGRESS, 128);
+    expect(p.bestDeepCurrentDistance).toBe(128);
+    expect(p.completedMissions).toEqual([]);
   });
 });

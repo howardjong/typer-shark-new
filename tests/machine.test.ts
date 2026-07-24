@@ -4,6 +4,8 @@ import { AppState, initialState, reduce } from "../src/state/machine";
 const playingState: AppState = {
   screen: "mission",
   difficulty: "starter",
+  missionId: "warmup-first-letter",
+  runPolicy: "timed",
   attempt: 1,
   phase: { name: "playing" },
 };
@@ -64,5 +66,28 @@ describe("app state machine", () => {
 
   it("leave returns to welcome", () => {
     expect(reduce(playingState, { type: "LEAVE" })).toEqual({ screen: "welcome" });
+  });
+
+  it("keeps selected mission and practice policy explicit through map selection", () => {
+    const map = {
+      screen: "adventureMap" as const,
+      difficulty: "standard" as const,
+    };
+    const briefing = reduce(map, {
+      type: "SELECT_MISSION",
+      missionId: "kelp-shellback",
+      runPolicy: "practice",
+    });
+    expect(briefing).toMatchObject({
+      screen: "briefing",
+      missionId: "kelp-shellback",
+      runPolicy: "practice",
+    });
+    const mission = reduce(briefing, { type: "START_MISSION" });
+    expect(mission).toMatchObject({
+      screen: "mission",
+      missionId: "kelp-shellback",
+      runPolicy: "practice",
+    });
   });
 });

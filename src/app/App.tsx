@@ -82,8 +82,9 @@ export function App() {
   );
 
   const resetProgress = useCallback(() => {
-    setProgress({ ...DEFAULT_PROGRESS, completedMissions: [], best: {}, buildBits: 0 });
-    if (storage) saveProgress(storage, { completedMissions: [], best: {}, buildBits: 0 });
+    const reset = { ...DEFAULT_PROGRESS, completedMissions: [], best: {}, buildBits: 0 };
+    setProgress(reset);
+    if (storage) saveProgress(storage, reset);
   }, [storage]);
 
   const rootClass = [

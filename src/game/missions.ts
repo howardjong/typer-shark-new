@@ -121,7 +121,10 @@ export const MISSIONS: readonly MissionDefinition[] = [
     difficulty: "starter",
     durationMs: 90_000,
     targetFamilies: ["current-gate"],
-    unlock: { anyOf: ["sunlit-top-row", "sunlit-short-words"] },
+    unlock: {
+      allOf: ["warmup-first-letter"],
+      anyOf: ["sunlit-top-row", "sunlit-short-words"],
+    },
     gate: { stabilityBlocks: 8, maximumVisibleProjectiles: 3 },
   },
   {
@@ -177,7 +180,10 @@ export const MISSIONS: readonly MissionDefinition[] = [
     difficulty: "standard",
     durationMs: 120_000,
     targetFamilies: ["current-gate"],
-    unlock: { anyOf: ["kelp-shellback", "kelp-word-pairs"] },
+    unlock: {
+      allOf: ["kelp-sight-words"],
+      anyOf: ["kelp-shellback", "kelp-word-pairs"],
+    },
     gate: { stabilityBlocks: 10, maximumVisibleProjectiles: 3 },
   },
   {
@@ -233,7 +239,10 @@ export const MISSIONS: readonly MissionDefinition[] = [
     difficulty: "standard",
     durationMs: 120_000,
     targetFamilies: ["current-gate"],
-    unlock: { anyOf: ["crystal-spark-school", "crystal-swift-current"] },
+    unlock: {
+      allOf: ["crystal-prism-words"],
+      anyOf: ["crystal-spark-school", "crystal-swift-current"],
+    },
     gate: { stabilityBlocks: 12, maximumVisibleProjectiles: 3 },
   },
 ];

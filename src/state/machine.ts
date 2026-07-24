@@ -7,6 +7,7 @@
 import type { DifficultyId } from "../game/config";
 import type { MissionOutcome } from "../game/engine";
 import type { EngineSnapshot } from "../game/engine";
+import type { MissionId } from "../game/missions";
 
 export type PauseReason = "user" | "auto" | "reminder";
 export type MissionPhase =
@@ -14,15 +15,30 @@ export type MissionPhase =
   | { name: "playing" }
   | { name: "paused"; reason: PauseReason };
 
+/** Timed campaign play and untimed practice share mission data, not rewards. */
+export type RunPolicy = "timed" | "practice";
+
+const WARMUP_MISSION_ID: MissionId = "warmup-first-letter";
+
 export type AppState =
   | { screen: "welcome" }
   | { screen: "keyboardCheck" }
   | { screen: "difficulty" }
-  | { screen: "briefing"; difficulty: DifficultyId }
-  | { screen: "mission"; difficulty: DifficultyId; attempt: number; phase: MissionPhase }
+  | { screen: "adventureMap"; difficulty: DifficultyId }
+  | { screen: "briefing"; difficulty: DifficultyId; missionId: MissionId; runPolicy: RunPolicy }
+  | {
+      screen: "mission";
+      difficulty: DifficultyId;
+      missionId: MissionId;
+      runPolicy: RunPolicy;
+      attempt: number;
+      phase: MissionPhase;
+    }
   | {
       screen: "results";
       difficulty: DifficultyId;
+      missionId: MissionId;
+      runPolicy: RunPolicy;
       outcome: MissionOutcome;
       stats: EngineSnapshot;
     };
@@ -31,6 +47,8 @@ export type AppEvent =
   | { type: "PLAY" }
   | { type: "KEYBOARD_OK" }
   | { type: "PICK_DIFFICULTY"; difficulty: DifficultyId }
+  | { type: "VIEW_MAP" }
+  | { type: "SELECT_MISSION"; missionId: MissionId; runPolicy: RunPolicy }
   | { type: "START_MISSION" }
   | { type: "COUNTDOWN_DONE" }
   | { type: "PAUSE"; reason: PauseReason }
@@ -53,7 +71,27 @@ export function reduce(state: AppState, event: AppEvent): AppState {
 
     case "PICK_DIFFICULTY":
       return state.screen === "difficulty"
-        ? { screen: "briefing", difficulty: event.difficulty }
+        ? {
+            screen: "briefing",
+            difficulty: event.difficulty,
+            missionId: WARMUP_MISSION_ID,
+            runPolicy: "timed",
+          }
+        : state;
+
+    case "VIEW_MAP":
+      return state.screen === "briefing" || state.screen === "results"
+        ? { screen: "adventureMap", difficulty: state.difficulty }
+        : state;
+
+    case "SELECT_MISSION":
+      return state.screen === "adventureMap"
+        ? {
+            screen: "briefing",
+            difficulty: state.difficulty,
+            missionId: event.missionId,
+            runPolicy: event.runPolicy,
+          }
         : state;
 
     case "START_MISSION":
@@ -61,6 +99,8 @@ export function reduce(state: AppState, event: AppEvent): AppState {
         ? {
             screen: "mission",
             difficulty: state.difficulty,
+            missionId: state.missionId,
+            runPolicy: state.runPolicy,
             attempt: 1,
             phase: { name: "countdown", resuming: false },
           }
@@ -100,6 +140,8 @@ export function reduce(state: AppState, event: AppEvent): AppState {
         ? {
             screen: "results",
             difficulty: state.difficulty,
+            missionId: state.missionId,
+            runPolicy: state.runPolicy,
             outcome: event.outcome,
             stats: event.stats,
           }
@@ -110,6 +152,8 @@ export function reduce(state: AppState, event: AppEvent): AppState {
         ? {
             screen: "mission",
             difficulty: state.difficulty,
+            missionId: state.missionId,
+            runPolicy: state.runPolicy,
             attempt: 1,
             phase: { name: "countdown", resuming: false },
           }
@@ -117,7 +161,7 @@ export function reduce(state: AppState, event: AppEvent): AppState {
 
     case "HOME":
       return state.screen === "results" || state.screen === "difficulty" ||
-        state.screen === "briefing" || state.screen === "keyboardCheck"
+        state.screen === "briefing" || state.screen === "keyboardCheck" || state.screen === "adventureMap"
         ? { screen: "welcome" }
         : state;
 
