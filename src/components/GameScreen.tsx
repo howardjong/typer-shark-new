@@ -45,7 +45,10 @@ export function GameScreen({
           noSameFirstLetter: difficulty.noSameFirstLetter || settings.noSameFirstLetter,
         },
         motion: settings.motion,
-        letters: WARMUP_LESSON.letters,
+        run: {
+          id: WARMUP_LESSON.id,
+          labels: WARMUP_LESSON.letters,
+        },
         seed: (Date.now() ^ 0x5eed) >>> 0,
       }),
     // Intentionally created once per mount; settings applied at resume.

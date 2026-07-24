@@ -7,7 +7,7 @@ function makeEngine(overrides: Partial<ConstructorParameters<typeof Engine>[0]> 
   return new Engine({
     difficulty: DIFFICULTIES.starter,
     motion: "normal",
-    letters: STARTER_WARMUP_LETTERS,
+    run: { id: "test-warmup", labels: STARTER_WARMUP_LETTERS },
     seed: 42,
     ...overrides,
   });
@@ -72,7 +72,7 @@ describe("target selection", () => {
   });
 
   it("keeps the selected target locked; a closer target cannot steal focus", () => {
-    const engine = makeEngine({ letters: ["a", "b"] as const });
+    const engine = makeEngine({ run: { id: "two-labels", labels: ["a", "b"] } });
     spawnTargets(engine, 2);
     const [a, b] = engine.targets;
     a.label = "ab"; // two chars so selection persists
@@ -127,7 +127,7 @@ describe("input handling", () => {
 
 describe("collisions and hearts", () => {
   it("a selected target reaching the base costs one heart once, clears selection, and is not a typing mistake", () => {
-    const engine = makeEngine({ letters: ["a"] as const });
+    const engine = makeEngine({ run: { id: "single-label", labels: ["a"] } });
     spawnTargets(engine, 1);
     const t = engine.targets[0];
     t.label = "aa";
@@ -202,7 +202,10 @@ describe("timing safety", () => {
 
 describe("streaks and rewards", () => {
   it("awards a badge every five consecutive completions and resets streak on a mistake", () => {
-    const engine = makeEngine({ letters: ["a", "b", "c", "d", "e", "f", "g"] as const, durationMs: 600000 });
+    const engine = makeEngine({
+      run: { id: "streak-labels", labels: ["a", "b", "c", "d", "e", "f", "g"] },
+      durationMs: 600000,
+    });
     let badges = 0;
     for (let i = 0; i < 5; i++) {
       spawnTargets(engine, 1);
@@ -215,5 +218,17 @@ describe("streaks and rewards", () => {
     engine.handleKey("z"); // mistake
     expect(engine.streak).toBe(0);
     expect(engine.bestStreak).toBe(5);
+  });
+});
+
+describe("run definitions", () => {
+  it("spawns arbitrary word labels from its deterministic run definition", () => {
+    const engine = makeEngine({
+      difficulty: DIFFICULTIES.standard,
+      run: { id: "word-run", labels: ["coral", "shell"] },
+    });
+    spawnTargets(engine, 1);
+    expect(engine.runId).toBe("word-run");
+    expect(["coral", "shell"]).toContain(engine.targets[0].label);
   });
 });

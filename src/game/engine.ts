@@ -45,10 +45,20 @@ export type EngineEvent =
 
 export type MissionOutcome = "success" | "defeat";
 
+/**
+ * Engine-owned, deterministic input for one ordinary timed run. Higher-level
+ * screens may adapt a campaign mission, practice drill, or endless run into
+ * this small shape without giving the engine React or DOM concerns.
+ */
+export interface MissionRunDefinition {
+  id: string;
+  labels: readonly string[];
+}
+
 export interface EngineOptions {
   difficulty: DifficultyConfig;
   motion: MotionId;
-  letters: readonly string[];
+  run: MissionRunDefinition;
   seed: number;
   /** Override mission length (tests). */
   durationMs?: number;
@@ -68,6 +78,7 @@ export interface EngineSnapshot {
 }
 
 export class Engine {
+  readonly runId: string;
   targets: TargetState[] = [];
   selectedId: number | null = null;
   hearts: number;
@@ -91,6 +102,7 @@ export class Engine {
   private motionMult: number;
 
   constructor(private opts: EngineOptions) {
+    this.runId = opts.run.id;
     this.hearts = opts.difficulty.hearts;
     this.timeLeftMs = opts.durationMs ?? opts.difficulty.missionDurationMs;
     this.rng = new RNG(opts.seed);
@@ -254,7 +266,7 @@ export class Engine {
     }
 
     // No-ambiguity rule: exclude first letters of all unresolved labels.
-    let pool = this.opts.letters;
+    let pool = this.opts.run.labels;
     if (this.opts.difficulty.noSameFirstLetter) {
       const reserved = new Set(this.targets.map((t) => t.label[0]));
       pool = pool.filter((l) => !reserved.has(l));

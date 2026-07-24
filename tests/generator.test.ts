@@ -59,7 +59,7 @@ describe("starter mission generator", () => {
     const engine = new Engine({
       difficulty: DIFFICULTIES.starter,
       motion: "normal",
-      letters: STARTER_WARMUP_LETTERS,
+      run: { id: "starter-generator", labels: STARTER_WARMUP_LETTERS },
       seed: 7,
       durationMs: 70000,
     });
@@ -74,7 +74,7 @@ describe("starter mission generator", () => {
     const engine = new Engine({
       difficulty: DIFFICULTIES.starter,
       motion: "normal",
-      letters: STARTER_WARMUP_LETTERS,
+      run: { id: "starter-cap", labels: STARTER_WARMUP_LETTERS },
       seed: 3,
       durationMs: 70000,
     });
@@ -92,7 +92,7 @@ describe("starter mission generator", () => {
     const engine = new Engine({
       difficulty: DIFFICULTIES.starter,
       motion: "normal",
-      letters: ["a"],
+      run: { id: "constrained", labels: ["a"] },
       seed: 5,
       durationMs: 60000,
     });
@@ -105,7 +105,7 @@ describe("starter mission generator", () => {
       const engine = new Engine({
         difficulty: DIFFICULTIES.starter,
         motion: "normal",
-        letters: STARTER_WARMUP_LETTERS,
+        run: { id: "deterministic", labels: STARTER_WARMUP_LETTERS },
         seed: 99,
         durationMs: 60000,
       });
@@ -125,7 +125,7 @@ describe("starter mission generator", () => {
     const engine = new Engine({
       difficulty: DIFFICULTIES.starter,
       motion: "normal",
-      letters: STARTER_WARMUP_LETTERS,
+      run: { id: "spawn-rate", labels: STARTER_WARMUP_LETTERS },
       seed: 11,
       durationMs: 70000,
     });
