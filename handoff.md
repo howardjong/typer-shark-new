@@ -20,10 +20,24 @@ The full spec lives in [`REPLIT_AGENT_SPEC.md`](./REPLIT_AGENT_SPEC.md) (441 lin
 |------|-------|
 | #1 — Setup & review | Merged |
 | **#2 — First playable slice (Starter mission)** | **Complete ✅** |
-| #3 — Full campaign (12 missions, 3 modes, all target families) | Proposed |
-| #4 — Verify & publish (quality gates + Autoscale deploy) | Proposed |
+| #3 — Adventure Trail campaign (12 missions, all target families, Current Gates) | Proposed |
+| #4 — Deep Current and Key Camp (the two remaining game modes) | Proposed |
+| #5 — Verify & publish (quality gates + Autoscale deploy) | Proposed |
 
 The playable flow is: **Welcome → keyboard check → difficulty picker → briefing → 3-2-1 countdown → mission → results card.**
+
+---
+
+## Working protocol — required Git checkpoints
+
+The detailed, implementation-ready checkpoint plan is in [`IMPLEMENTATION_PLAN.md`](./IMPLEMENTATION_PLAN.md). Follow it in order.
+
+- **Starter, Standard, and Swift are difficulties**, not the three game modes. The actual v1 game modes are Adventure Trail, Deep Current, and Key Camp.
+- Each functional block (A1 through E2) is an explicit commit boundary. Do not begin the next block with uncommitted code from the last one.
+- At a checkpoint: run the focused tests named in the plan, run `git diff --check`, inspect `git status`, stage only the intended files, and commit using the plan's message. Run the full test/type-check/build/production-smoke gates at campaign, mode, and release boundaries.
+- Never bundle unrelated formatting, generated audio, dependency changes, or deployment settings into a feature checkpoint. Audio generation or Autoscale publishing requires its own explicit scope and verification.
+
+The documentation checkpoint that introduced this protocol is committed as `docs: add implementation checkpoints`.
 
 ---
 
