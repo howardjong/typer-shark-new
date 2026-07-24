@@ -98,6 +98,9 @@ export function GameScreen({
                 : `Cleared ${ev.label}. Great!`,
             );
             break;
+          case "nextLabel":
+            setLiveMessage(`Next word: ${ev.label}.`);
+            break;
           case "wrongKey":
             audio.play("wrong");
             break;
@@ -118,6 +121,17 @@ export function GameScreen({
           case "miss":
             audio.play("miss");
             setLiveMessage(`A fish reached the bay. ${ev.heartsLeft} hearts left.`);
+            break;
+          case "drift":
+            setLiveMessage("The Treasure Bubble drifted safely away.");
+            break;
+          case "shieldReady":
+            audio.play("badge");
+            setLiveMessage("Reef Shield ready. Press Enter when you want a clear current.");
+            break;
+          case "shieldUsed":
+            audio.play("complete");
+            setLiveMessage(`Reef Shield cleared ${ev.cleared} target${ev.cleared === 1 ? "" : "s"}.`);
             break;
           case "end":
             if (!endedRef.current) {
@@ -221,6 +235,12 @@ export function GameScreen({
     if (playing || phase.name === "countdown") containerRef.current?.focus();
   }, [playing, phase.name]);
 
+  const useReefShield = useCallback(() => {
+    if (!playing || !engine.activateReefShield()) return;
+    handleEvents(engine.drainEvents());
+    forceRender();
+  }, [engine, handleEvents, playing]);
+
   const onKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       const action = classifyKey(e.nativeEvent);
@@ -232,11 +252,16 @@ export function GameScreen({
           e.preventDefault();
           engine.handleKey(action.char);
           forceRender();
+        } else if (action.kind === "enter") {
+          if (engine.activateReefShield()) {
+            e.preventDefault();
+            handleEvents(engine.drainEvents());
+            forceRender();
+          }
         } else if (action.kind === "space") {
           // Prevent page scroll during play; not a typing attempt.
           e.preventDefault();
         }
-        // Enter is reserved for Reef Shield (later slice); ignored here.
       } else if (phase.name === "paused") {
         if (action.kind === "enter" || action.kind === "space") {
           e.preventDefault();
@@ -245,7 +270,7 @@ export function GameScreen({
       }
       // Countdown: all input intentionally ignored (not counted anywhere).
     },
-    [phase.name, dispatch, engine],
+    [phase.name, dispatch, engine, handleEvents],
   );
 
   useEffect(() => () => window.clearTimeout(hintTimerRef.current), []);
@@ -280,6 +305,9 @@ export function GameScreen({
         timeLeftMs={snapshot.timeLeftMs}
         buildBits={snapshot.buildBits}
         streak={snapshot.streak}
+        shieldCharge={snapshot.shieldCharge}
+        shieldReady={snapshot.shieldReady}
+        onUseShield={useReefShield}
         onPause={() => dispatch({ type: "PAUSE", reason: "user" })}
       />
 

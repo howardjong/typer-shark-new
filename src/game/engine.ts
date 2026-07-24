@@ -12,16 +12,25 @@ import {
   LANE_SPAWN_CLEARANCE_X,
   MOTION_MULTIPLIER,
   MotionId,
+  REEF_SHIELD_COMPLETIONS,
   SPAWN_RETRY_DELAY_MS,
   STALL_AUTO_PAUSE_MS,
   STARTER_SELECTED_SPEED_FACTOR,
   STREAK_BADGE_EVERY,
 } from "./config";
 import { RNG } from "./rng";
+import { OrdinaryTargetFamily, TARGET_FAMILY_RULES } from "./targetTypes";
 
 export interface TargetState {
   id: number;
+  family: OrdinaryTargetFamily;
   label: string;
+  /** Shellback's hidden second label, reserved until it is revealed. */
+  nextLabel: string | null;
+  /** 1 for the initial label, 2 after a Shellback label transition. */
+  stage: 1 | 2;
+  /** Total characters across every label, used for a fair final reward. */
+  rewardCharacters: number;
   /** Count of correctly typed characters so far. */
   typed: number;
   /** 1 = spawn edge (right), 0 = Pebble Bay base (left). */
@@ -36,10 +45,14 @@ export type EngineEvent =
   | { type: "spawn"; target: TargetState }
   | { type: "select"; id: number }
   | { type: "progress"; id: number; typed: number }
+  | { type: "nextLabel"; id: number; label: string }
   | { type: "complete"; id: number; label: string; streak: number; badge: boolean }
   | { type: "wrongKey"; id: number; expected: string }
   | { type: "noMatch"; char: string }
   | { type: "miss"; id: number; heartsLeft: number }
+  | { type: "drift"; id: number; family: OrdinaryTargetFamily }
+  | { type: "shieldReady" }
+  | { type: "shieldUsed"; cleared: number }
   | { type: "end"; outcome: MissionOutcome }
   | { type: "stall" };
 
@@ -53,6 +66,12 @@ export type MissionOutcome = "success" | "defeat";
 export interface MissionRunDefinition {
   id: string;
   labels: readonly string[];
+  /** Defaults to Pebble Puffers to preserve the first playable slice. */
+  targetFamilies?: readonly OrdinaryTargetFamily[];
+  /** Second-label bank for two-stage Shellbacks; defaults to `labels`. */
+  shellbackLabels?: readonly string[];
+  /** Optional three-letter bank for harmless Treasure Bubbles. */
+  bonusLabels?: readonly string[];
 }
 
 export interface EngineOptions {
@@ -74,6 +93,8 @@ export interface EngineSnapshot {
   bestStreak: number;
   completed: number;
   buildBits: number;
+  shieldCharge: number;
+  shieldReady: boolean;
   ended: MissionOutcome | null;
 }
 
@@ -90,6 +111,7 @@ export class Engine {
   bestStreak = 0;
   completed = 0;
   buildBits = 0;
+  shieldCharge = 0;
   ended: MissionOutcome | null = null;
   /** Bumped on any observable change so the UI can re-render cheaply. */
   version = 0;
@@ -117,6 +139,33 @@ export class Engine {
     this.motionMult = MOTION_MULTIPLIER[motion];
   }
 
+  isReefShieldReady(): boolean {
+    return this.shieldCharge >= REEF_SHIELD_COMPLETIONS;
+  }
+
+  /**
+   * Clears ordinary targets without granting score, accuracy, streak, or
+   * Shield charge. A full Shield stays ready when there is nothing safe to
+   * clear, so Enter can never waste it between spawns.
+   */
+  activateReefShield(): boolean {
+    if (this.ended || !this.isReefShieldReady()) return false;
+    const clearable = this.targets.filter(
+      (target) => TARGET_FAMILY_RULES[target.family].clearableByReefShield,
+    );
+    if (clearable.length === 0) return false;
+
+    const clearedIds = new Set(clearable.map((target) => target.id));
+    this.targets = this.targets.filter((target) => !clearedIds.has(target.id));
+    if (this.selectedId !== null && clearedIds.has(this.selectedId)) {
+      this.selectedId = null;
+    }
+    this.shieldCharge = 0;
+    this.emit({ type: "shieldUsed", cleared: clearable.length });
+    this.version++;
+    return true;
+  }
+
   snapshot(): EngineSnapshot {
     return {
       hearts: this.hearts,
@@ -128,6 +177,8 @@ export class Engine {
       bestStreak: this.bestStreak,
       completed: this.completed,
       buildBits: this.buildBits,
+      shieldCharge: this.shieldCharge,
+      shieldReady: this.isReefShieldReady(),
       ended: this.ended,
     };
   }
@@ -173,12 +224,17 @@ export class Engine {
       t.x -= speed * dt;
     }
 
-    // Collisions: each reaching target is removed once, costs one heart once,
-    // clears selection safely, and never counts as a typing mistake.
+    // Collisions: each reaching target is removed once, clears selection
+    // safely, and never counts as a typing mistake. Treasure Bubbles are
+    // harmless: an untyped bonus simply drifts away.
     for (const t of [...this.targets]) {
       if (t.x > 0 || this.ended) continue;
       this.removeTarget(t.id);
       if (this.selectedId === t.id) this.selectedId = null;
+      if (!TARGET_FAMILY_RULES[t.family].collisionCostsHeart) {
+        this.emit({ type: "drift", id: t.id, family: t.family });
+        continue;
+      }
       this.hearts -= 1;
       this.emit({ type: "miss", id: t.id, heartsLeft: this.hearts });
       if (this.hearts <= 0) this.finish("defeat");
@@ -238,13 +294,27 @@ export class Engine {
     this.correct++;
     this.emit({ type: "progress", id: target.id, typed: target.typed });
     if (target.typed >= target.label.length) {
+      if (target.nextLabel !== null) {
+        target.label = target.nextLabel;
+        target.nextLabel = null;
+        target.stage = 2;
+        target.typed = 0;
+        this.emit({ type: "nextLabel", id: target.id, label: target.label });
+        return;
+      }
+
       this.removeTarget(target.id);
       this.selectedId = null;
       this.completed++;
-      this.buildBits += BUILD_BITS_PER_LETTER * target.label.length;
+      this.buildBits += BUILD_BITS_PER_LETTER * target.rewardCharacters;
       this.streak++;
       if (this.streak > this.bestStreak) this.bestStreak = this.streak;
       const badge = this.streak > 0 && this.streak % STREAK_BADGE_EVERY === 0;
+      if (TARGET_FAMILY_RULES[target.family].chargesReefShield) {
+        const wasReady = this.isReefShieldReady();
+        this.shieldCharge = Math.min(REEF_SHIELD_COMPLETIONS, this.shieldCharge + 1);
+        if (!wasReady && this.isReefShieldReady()) this.emit({ type: "shieldReady" });
+      }
       this.emit({
         type: "complete",
         id: target.id,
@@ -265,13 +335,21 @@ export class Engine {
       return;
     }
 
-    // No-ambiguity rule: exclude first letters of all unresolved labels.
-    let pool = this.opts.run.labels;
-    if (this.opts.difficulty.noSameFirstLetter) {
-      const reserved = new Set(this.targets.map((t) => t.label[0]));
-      pool = pool.filter((l) => !reserved.has(l));
-    }
-    if (pool.length === 0) {
+    // No-ambiguity rule: reserve both a Shellback's visible and hidden first
+    // letters, so its second label can never reveal into a conflict.
+    const reserved = this.opts.difficulty.noSameFirstLetter
+      ? new Set(
+          this.targets.flatMap((target) =>
+            [target.label, target.nextLabel]
+              .filter((label): label is string => label !== null)
+              .map((label) => label[0]),
+          ),
+        )
+      : new Set<string>();
+    const families = this.targetFamilies().filter((family) =>
+      this.canSpawnFamily(family, reserved),
+    );
+    if (families.length === 0) {
       this.spawnCooldown = SPAWN_RETRY_DELAY_MS;
       return;
     }
@@ -290,9 +368,19 @@ export class Engine {
       return;
     }
 
+    const family = this.rng.pick(families);
+    const labels = this.availableLabels(this.labelsFor(family), reserved);
+    const label = this.rng.pick(labels);
+    const nextLabel = TARGET_FAMILY_RULES[family].stages === 2
+      ? this.rng.pick(this.availableLabels(this.opts.run.shellbackLabels ?? this.opts.run.labels, reserved))
+      : null;
     const target: TargetState = {
       id: this.nextId++,
-      label: this.rng.pick(pool),
+      family,
+      label,
+      nextLabel,
+      stage: 1,
+      rewardCharacters: label.length + (nextLabel?.length ?? 0),
       typed: 0,
       x: 1,
       lane: this.rng.pick(freeLanes),
@@ -303,6 +391,26 @@ export class Engine {
     this.emit({ type: "spawn", target });
     this.spawnCooldown =
       this.opts.difficulty.minSpawnIntervalMs * this.motionMult;
+  }
+
+  private targetFamilies(): readonly OrdinaryTargetFamily[] {
+    return this.opts.run.targetFamilies ?? ["pebble-puffer"];
+  }
+
+  private labelsFor(family: OrdinaryTargetFamily): readonly string[] {
+    if (!TARGET_FAMILY_RULES[family].usesBonusLabels) return this.opts.run.labels;
+    return this.opts.run.bonusLabels ?? this.opts.run.labels.filter((label) => label.length === 3);
+  }
+
+  private availableLabels(labels: readonly string[], reserved: ReadonlySet<string>): readonly string[] {
+    if (!this.opts.difficulty.noSameFirstLetter) return labels;
+    return labels.filter((label) => !reserved.has(label[0]));
+  }
+
+  private canSpawnFamily(family: OrdinaryTargetFamily, reserved: ReadonlySet<string>): boolean {
+    if (this.availableLabels(this.labelsFor(family), reserved).length === 0) return false;
+    if (TARGET_FAMILY_RULES[family].stages === 1) return true;
+    return this.availableLabels(this.opts.run.shellbackLabels ?? this.opts.run.labels, reserved).length > 0;
   }
 
   private finish(outcome: MissionOutcome): void {

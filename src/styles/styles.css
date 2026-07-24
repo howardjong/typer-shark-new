@@ -451,6 +451,15 @@ p {
   font-weight: bold;
 }
 
+.hud-shield {
+  white-space: nowrap;
+}
+
+.hud-shield.ready {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
 /* ---------- play field & targets ---------- */
 
 .playfield {

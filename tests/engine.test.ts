@@ -232,3 +232,113 @@ describe("run definitions", () => {
     expect(["coral", "shell"]).toContain(engine.targets[0].label);
   });
 });
+
+describe("target families and Reef Shield", () => {
+  it("keeps a Shellback selected through its second label and counts one final completion", () => {
+    const engine = makeEngine({
+      run: {
+        id: "shellback-run",
+        labels: ["cat", "eel"],
+        shellbackLabels: ["dog", "fox"],
+        targetFamilies: ["shellback"],
+      },
+    });
+    spawnTargets(engine, 1);
+    const target = engine.targets[0];
+    const firstLabel = target.label;
+    const secondLabel = target.nextLabel!;
+
+    for (const char of firstLabel) engine.handleKey(char);
+    expect(engine.targets).toHaveLength(1);
+    expect(engine.selectedId).toBe(target.id);
+    expect(target.label).toBe(secondLabel);
+    expect(target.nextLabel).toBeNull();
+    expect(target.typed).toBe(0);
+    expect(engine.completed).toBe(0);
+
+    for (const char of secondLabel) engine.handleKey(char);
+    expect(engine.targets).toHaveLength(0);
+    expect(engine.completed).toBe(1);
+    expect(engine.shieldCharge).toBe(1);
+  });
+
+  it("reserves a Shellback's hidden first letter in no-same-first-letter mode", () => {
+    const engine = makeEngine({
+      run: {
+        id: "reserved-shellback",
+        labels: ["cat", "eel", "ink"],
+        shellbackLabels: ["dog", "fox", "gum"],
+        targetFamilies: ["shellback"],
+      },
+      durationMs: 60_000,
+    });
+
+    for (let i = 0; i < 220; i++) {
+      engine.tick(50);
+      const firstLetters = engine.targets.flatMap((target) =>
+        [target.label[0], target.nextLabel?.[0]].filter((letter): letter is string => Boolean(letter)),
+      );
+      expect(new Set(firstLetters).size).toBe(firstLetters.length);
+    }
+  });
+
+  it("makes Treasure Bubbles harmless and excludes them from Reef Shield charge", () => {
+    const drifting = makeEngine({
+      difficulty: DIFFICULTIES.standard,
+      run: {
+        id: "treasure-drift",
+        labels: ["cat"],
+        bonusLabels: ["gem"],
+        targetFamilies: ["treasure-bubble"],
+      },
+    });
+    spawnTargets(drifting, 1);
+    expect(drifting.targets[0].label).toBe("gem");
+    const heartsBefore = drifting.hearts;
+    drifting.targets[0].x = 0.00001;
+    drifting.tick(50);
+    expect(drifting.targets).toHaveLength(0);
+    expect(drifting.hearts).toBe(heartsBefore);
+
+    const cleared = makeEngine({
+      difficulty: DIFFICULTIES.standard,
+      run: {
+        id: "treasure-clear",
+        labels: ["cat"],
+        bonusLabels: ["gem"],
+        targetFamilies: ["treasure-bubble"],
+      },
+    });
+    spawnTargets(cleared, 1);
+    for (const char of "gem") cleared.handleKey(char);
+    expect(cleared.completed).toBe(1);
+    expect(cleared.shieldCharge).toBe(0);
+  });
+
+  it("charges, preserves, and consumes Reef Shield without changing typing statistics", () => {
+    const engine = makeEngine({
+      difficulty: DIFFICULTIES.standard,
+      run: { id: "shield-run", labels: ["a"] },
+      durationMs: 600_000,
+    });
+    for (let i = 0; i < 10; i++) {
+      spawnTargets(engine, 1);
+      engine.handleKey("a");
+    }
+    expect(engine.isReefShieldReady()).toBe(true);
+    expect(engine.shieldCharge).toBe(10);
+
+    spawnTargets(engine, 2);
+    const before = engine.snapshot();
+    expect(engine.activateReefShield()).toBe(true);
+    expect(engine.targets).toHaveLength(0);
+    expect(engine.shieldCharge).toBe(0);
+    expect(engine.correct).toBe(before.correct);
+    expect(engine.accepted).toBe(before.accepted);
+    expect(engine.completed).toBe(before.completed);
+
+    engine.shieldCharge = 10;
+    expect(engine.activateReefShield()).toBe(false);
+    expect(engine.shieldCharge).toBe(10);
+  });
+});

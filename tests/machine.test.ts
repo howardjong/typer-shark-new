@@ -52,7 +52,8 @@ describe("app state machine", () => {
   it("mission end moves to results with stats; typing events have no meaning there", () => {
     const stats = {
       hearts: 3, timeLeftMs: 0, activeMs: 60000, correct: 30, accepted: 32,
-      streak: 4, bestStreak: 8, completed: 30, buildBits: 150, ended: "success" as const,
+      streak: 4, bestStreak: 8, completed: 30, buildBits: 150,
+      shieldCharge: 3, shieldReady: false, ended: "success" as const,
     };
     const results = reduce(playingState, { type: "MISSION_END", outcome: "success", stats });
     expect(results).toMatchObject({ screen: "results", outcome: "success" });

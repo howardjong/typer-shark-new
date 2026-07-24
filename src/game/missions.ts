@@ -9,17 +9,12 @@ import {
   WARMUP_LESSON,
   SWIFT_CHALLENGE_WORDS,
 } from "./wordBanks";
+import type { TargetFamilyId } from "./targetTypes";
+
+export type { TargetFamilyId } from "./targetTypes";
 
 export type RegionId = "sunlit-shelf" | "kelp-cubes" | "crystal-current";
 export type MissionKind = "regular" | "current-gate";
-export type TargetFamilyId =
-  | "pebble-puffer"
-  | "tile-ray"
-  | "shellback"
-  | "prism-eel"
-  | "spark-school"
-  | "treasure-bubble"
-  | "current-gate";
 
 export type MissionId =
   | "warmup-first-letter"

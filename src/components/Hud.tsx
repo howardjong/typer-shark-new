@@ -4,10 +4,23 @@ interface Props {
   timeLeftMs: number;
   buildBits: number;
   streak: number;
+  shieldCharge: number;
+  shieldReady: boolean;
+  onUseShield: () => void;
   onPause: () => void;
 }
 
-export function Hud({ hearts, maxHearts, timeLeftMs, buildBits, streak, onPause }: Props) {
+export function Hud({
+  hearts,
+  maxHearts,
+  timeLeftMs,
+  buildBits,
+  streak,
+  shieldCharge,
+  shieldReady,
+  onUseShield,
+  onPause,
+}: Props) {
   const totalSec = Math.ceil(timeLeftMs / 1000);
   const mm = Math.floor(totalSec / 60);
   const ss = String(totalSec % 60).padStart(2, "0");
@@ -40,6 +53,18 @@ export function Hud({ hearts, maxHearts, timeLeftMs, buildBits, streak, onPause 
         <span className="hud-bits" aria-label={`Build Bits: ${buildBits}`}>
           ◆ {buildBits}
         </span>
+        <button
+          className={`btn btn-small hud-shield${shieldReady ? " ready" : ""}`}
+          onClick={onUseShield}
+          disabled={!shieldReady}
+          aria-label={
+            shieldReady
+              ? "Reef Shield ready. Press Enter or activate Reef Shield."
+              : `Reef Shield: ${shieldCharge} of 10 ordinary targets cleared.`
+          }
+        >
+          Reef Shield {shieldCharge}/10
+        </button>
         <button className="btn btn-small" onClick={onPause}>
           Pause
         </button>

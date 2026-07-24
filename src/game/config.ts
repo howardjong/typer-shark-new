@@ -85,6 +85,9 @@ export const BUILD_BITS_PER_LETTER = 5;
 /** A streak badge is awarded every N consecutive completions. */
 export const STREAK_BADGE_EVERY = 5;
 
+/** Ordinary target completions needed to fully charge one Reef Shield. */
+export const REEF_SHIELD_COMPLETIONS = 10;
+
 /** Number of horizontal swim lanes in the play field. */
 export const LANE_COUNT = 4;
 
