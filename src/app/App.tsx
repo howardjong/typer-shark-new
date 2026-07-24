@@ -9,6 +9,7 @@ import { initialState, reduce } from "../state/machine";
 import { getStorage } from "../state/storage";
 import { DEFAULT_SETTINGS, loadSettings, saveSettings, Settings } from "../state/settings";
 import { loadProgress, recordMissionResult, saveProgress, DEFAULT_PROGRESS } from "../state/progress";
+import { recordBuildBreakReward } from "../state/progress";
 import { Welcome } from "../components/Welcome";
 import { KeyboardCheck } from "../components/KeyboardCheck";
 import { DifficultyPicker } from "../components/DifficultyPicker";
@@ -17,6 +18,7 @@ import { Briefing } from "../components/Briefing";
 import { GameScreen } from "../components/GameScreen";
 import { ResultsCard } from "../components/ResultsCard";
 import { PracticeScreen } from "../components/PracticeScreen";
+import { BuildBreakScreen } from "../components/BuildBreakScreen";
 import { SettingsPanel } from "../components/SettingsPanel";
 
 export function App() {
@@ -91,6 +93,15 @@ export function App() {
     const reset = { ...DEFAULT_PROGRESS, completedMissions: [], best: {}, buildBits: 0 };
     setProgress(reset);
     if (storage) saveProgress(storage, reset);
+  }, [storage]);
+
+  const handleBuildBreakEnd = useCallback((buildBits: number) => {
+    setProgress((current) => {
+      const next = recordBuildBreakReward(current, buildBits);
+      if (storage) saveProgress(storage, next);
+      return next;
+    });
+    dispatch({ type: "BUILD_BREAK_END" });
   }, [storage]);
 
   const rootClass = [
@@ -186,12 +197,28 @@ export function App() {
         />
       )}
 
+      {state.screen === "buildBreak" && (
+        <BuildBreakScreen
+          key={state.attempt}
+          mission={getMission(state.missionId)}
+          onFinish={handleBuildBreakEnd}
+          onRestart={() => dispatch({ type: "BUILD_BREAK_RESTART" })}
+          onLeave={() => dispatch({ type: "LEAVE" })}
+          onOpenSettings={() => setShowSettings(true)}
+        />
+      )}
+
       {state.screen === "results" && (
         <ResultsCard
           outcome={state.outcome}
           runPolicy={state.runPolicy}
           stats={state.stats}
           onPlayAgain={() => dispatch({ type: "PLAY_AGAIN" })}
+          onBuildBreak={
+            state.runPolicy === "timed" && state.outcome === "success" && getMission(state.missionId).kind === "regular"
+              ? () => dispatch({ type: "START_BUILD_BREAK" })
+              : undefined
+          }
           onMap={() => dispatch({ type: "VIEW_MAP" })}
         />
       )}

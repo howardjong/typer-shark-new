@@ -170,3 +170,10 @@ export function recordDeepCurrentDistance(progress: Progress, distance: number):
   next.bestDeepCurrentDistance = Math.max(next.bestDeepCurrentDistance, finiteWhole(distance));
   return next;
 }
+
+/** Build Break awards only its explicit bonus; it never alters lesson progress or bests. */
+export function recordBuildBreakReward(progress: Progress, buildBits: number): Progress {
+  const next = structuredCloneSafe(progress);
+  next.buildBits += finiteWhole(buildBits);
+  return next;
+}

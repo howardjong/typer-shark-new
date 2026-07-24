@@ -7,10 +7,11 @@ interface Props {
   runPolicy: RunPolicy;
   stats: EngineSnapshot;
   onPlayAgain: () => void;
+  onBuildBreak?: () => void;
   onMap: () => void;
 }
 
-export function ResultsCard({ outcome, runPolicy, stats, onPlayAgain, onMap }: Props) {
+export function ResultsCard({ outcome, runPolicy, stats, onPlayAgain, onBuildBreak, onMap }: Props) {
   const accuracy = accuracyPct(stats.correct, stats.accepted);
   const wpm = wordsPerMinute(stats.correct, stats.activeMs);
   const success = outcome === "success";
@@ -59,6 +60,9 @@ export function ResultsCard({ outcome, runPolicy, stats, onPlayAgain, onMap }: P
           <button className="btn btn-primary btn-big" onClick={onPlayAgain} autoFocus>
             {practice ? "Repeat Practise" : success ? "Replay This Mission" : "Restart"}
           </button>
+          {!practice && success && onBuildBreak && (
+            <button className="btn" onClick={onBuildBreak}>Try a Build Break</button>
+          )}
           <button className="btn" onClick={onMap}>
             {practice || !success ? "Return to Map" : "Choose Next Path"}
           </button>
