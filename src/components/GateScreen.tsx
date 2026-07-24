@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { DIFFICULTIES, DifficultyId } from "../game/config";
 import { GateEngine, GateEngineEvent, GateSnapshot } from "../game/gateEngine";
+import { targetTranslateX } from "../game/positioning";
 import type { MissionOutcome } from "../game/engine";
 import { classifyKey } from "../game/input";
 import type { MissionDefinition } from "../game/missions";
@@ -21,7 +22,7 @@ interface Props {
   onOpenSettings: () => void;
 }
 
-const PROJECTILE_WIDTH_PX = 320;
+const PROJECTILE_FALLBACK_WIDTH_PX = 120;
 
 export function GateScreen({
   difficultyId,
@@ -53,13 +54,18 @@ export function GateScreen({
   const containerRef = useRef<HTMLDivElement>(null);
   const fieldRef = useRef<HTMLDivElement>(null);
   const fieldWidthRef = useRef(0);
+  const projectileWidthsRef = useRef(new Map<number, number>());
   const nodeRefs = useRef(new Map<number, HTMLDivElement>());
   const lastTimeRef = useRef<number | null>(null);
   const endedRef = useRef(false);
   const playing = phase.name === "playing";
 
-  const xToPx = useCallback((x: number) => {
-    return Math.max(0, x * Math.max(0, fieldWidthRef.current - PROJECTILE_WIDTH_PX));
+  const xToPx = useCallback((x: number, projectileId: number) => {
+    return targetTranslateX(
+      x,
+      fieldWidthRef.current,
+      projectileWidthsRef.current.get(projectileId) ?? PROJECTILE_FALLBACK_WIDTH_PX,
+    );
   }, []);
   const measureField = useCallback(() => {
     if (fieldRef.current) fieldWidthRef.current = fieldRef.current.clientWidth;
@@ -127,7 +133,7 @@ export function GateScreen({
         }
         for (const projectile of engine.projectiles) {
           const node = nodeRefs.current.get(projectile.id);
-          if (node) node.style.transform = `translate3d(${xToPx(projectile.x)}px, 0, 0)`;
+          if (node) node.style.transform = `translate3d(${xToPx(projectile.x, projectile.id)}px, 0, 0)`;
         }
         if (now - lastHud > 250) {
           lastHud = now;
@@ -205,8 +211,15 @@ export function GateScreen({
               ref={(node) => {
                 if (node) {
                   nodeRefs.current.set(projectile.id, node);
-                  node.style.transform = `translate3d(${xToPx(projectile.x)}px, 0, 0)`;
-                } else nodeRefs.current.delete(projectile.id);
+                  projectileWidthsRef.current.set(
+                    projectile.id,
+                    node.getBoundingClientRect().width || PROJECTILE_FALLBACK_WIDTH_PX,
+                  );
+                  node.style.transform = `translate3d(${xToPx(projectile.x, projectile.id)}px, 0, 0)`;
+                } else {
+                  nodeRefs.current.delete(projectile.id);
+                  projectileWidthsRef.current.delete(projectile.id);
+                }
               }}
               className={`target gate-projectile lane-${projectile.lane}${selected ? " selected" : ""}`}
             >
@@ -222,7 +235,7 @@ export function GateScreen({
           );
         })}
       </div>
-      <div className="visually-hidden" aria-live="polite">{liveMessage}</div>
+      <div className="visually-hidden" role="status" aria-live="polite" aria-atomic="true">{liveMessage}</div>
       {phase.name === "countdown" && <Countdown resuming={phase.resuming} onDone={() => dispatch({ type: "COUNTDOWN_DONE" })} />}
       {phase.name === "paused" && (
         <PausePanel

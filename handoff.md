@@ -2,7 +2,7 @@
 
 > **Date:** 2026-07-23  
 > **Branch:** main  
-> **Passing tests:** 79/79 · TypeScript: clean · Production build: verified
+> **Passing tests:** 83/83 · TypeScript: clean · Production build: verified
 
 ---
 
@@ -20,7 +20,7 @@ The full spec lives in [`REPLIT_AGENT_SPEC.md`](./REPLIT_AGENT_SPEC.md) (441 lin
 |------|-------|
 | #1 — Setup & review | Merged |
 | **#2 — First playable slice (Starter mission)** | **Complete** |
-| #3 — Adventure Trail campaign (12 missions, target families, Current Gates) | In progress — accessibility/visual completion remains |
+| #3 — Adventure Trail campaign (12 missions, target families, Current Gates) | In progress — automated layout/accessibility complete; manual preview audit remains |
 | #4 — Deep Current and Key Camp (the two remaining game modes) | Proposed |
 | #5 — Verify & publish (quality gates + Autoscale deploy) | Proposed |
 
@@ -50,6 +50,7 @@ The documentation checkpoint that introduced this protocol is committed as `docs
 - `feat: add build break rewards`
 - `feat: add current gate encounters`
 - `feat: add gate practice and region celebrations`
+- `feat: improve campaign accessibility layout`
 
 ---
 
@@ -126,6 +127,7 @@ src/
     engine.ts            Core simulation; see Architecture section above
     gateEngine.ts        Deterministic Current Gate projectile/stability simulation
     missions.ts          12-mission Adventure Trail topology and unlock definitions
+    positioning.ts       Pure measured-width placement helper for both playfields
   state/
     machine.ts           AppState union, initialState, reduce, all event types
     storage.ts           StorageLike interface, readJson/writeJson (corruption-safe)
@@ -144,6 +146,8 @@ tests/
   gateEngine.test.ts     Gate stability, projectile cap, no-Shield, and heart-loss rules
   adventureMap.test.tsx     Current Gate practice availability on the map
   gateCelebration.test.tsx  Skippable gate celebration component flow
+  liveRegions.test.tsx     Atomic polite announcements for both playfields
+  positioning.test.ts       Safe variable-width label placement
   generator.test.ts      No-same-first-letter, max targets, bounded termination, determinism, spawn rate
   stats.test.ts          Accuracy and WPM edge cases (null, NaN, zero)
   input.test.ts          classifyKey filtering — case, repeats, modifiers, IME, dead keys
@@ -157,7 +161,7 @@ tests/
 
 ```bash
 npm run dev        # dev server on port 5000 (Vite)
-npm test           # Vitest (79 tests, ~3 s)
+npm test           # Vitest (83 tests, ~3 s)
 npm run type-check # tsc --noEmit (zero errors expected)
 npm run build      # tsc + Vite → dist/
 npm start          # serves dist/ on $PORT (default 3000); requires a build first
@@ -174,12 +178,12 @@ node scripts/generate-audio.mjs --force   # regenerates all
 
 ## Remaining implementation work
 
-Adventure Trail now has its complete 12-mission data model, unlock/replay persistence, ordinary target families, Reef Shield, map flow, untimed regular and Current Gate practice, Build Break, three timed Current Gate encounters, and short skippable region-build scenes. The next isolated checkpoint is **C2**:
+Adventure Trail now has its complete 12-mission data model, unlock/replay persistence, ordinary target families, Reef Shield, map flow, untimed regular and Current Gate practice, Build Break, three timed Current Gate encounters, short skippable region-build scenes, and automated variable-label/live-region coverage. **C2b** remains a release-time manual check:
 
-- Complete measured variable-label placement, responsive/reduced-motion behaviour, live messages, and the manual campaign accessibility pass.
+- Run the manual 200% zoom, small-screen, reduced-motion, keyboard-only, and screen-reader audit in a persistent browser preview. The production server starts here, but this execution environment stops it when the command returns, so no interactive audit was possible.
 - Keep the three difficulties distinct from the three game modes. Starter / Standard / Swift remain pacing rules; Adventure Trail / Deep Current / Key Camp are game modes.
 
-After C2, implement Deep Current (D1), Key Camp (E1), and release hardening (E2) according to `IMPLEMENTATION_PLAN.md`.
+The next code checkpoint is **D1 — Deep Current**. Key Camp (E1) and release hardening (E2) follow according to `IMPLEMENTATION_PLAN.md`.
 
 The reviewed banks and mission definitions live in `src/game/wordBanks.ts` and `src/game/missions.ts`; do not reintroduce the old letter-only mission model.
 

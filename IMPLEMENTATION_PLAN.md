@@ -47,8 +47,9 @@ Every row below is a **functional commit boundary**. Do not start the next row w
 | B3 | Practice and Build Break | Add untimed practice, stationary Build Break, and cosmetic build rewards. Region celebrations are deliberately split into C1b so this remains an independently usable checkpoint. | Practice/Build Break side-effect tests. | `feat: add practice and build rewards` | Complete |
 | C1a | Timed Current Gate encounters | Add all three gate definitions and the dedicated gate run engine/UI; unlock the next region only on gate completion. | Gate stability, cap, unlock, and no-Shield tests. | `feat: add current gate encounters` | Complete |
 | C1b | Gate practice and region celebrations | Add stationary, non-persistent gate practice and short skippable region build celebrations. | Gate-practice side-effect and celebration-flow tests. | `feat: add gate practice and region celebrations` | Complete |
-| C2 | Campaign accessibility and visual completion | Finish measured label placement, responsive variants, safe CSS/SVG art, live messages, and reduced-motion behaviour for Adventure Trail. | Presentation checks plus 200% zoom and reduced-motion manual pass. | `feat: polish accessible adventure campaign` | Next |
-| D1 | Deep Current | Add the post-four-mission unlock, bounded endless escalation, 60-second breather, and local distance best. | Deep Current bounds, breather, and persistence tests. | `feat: add deep current mode` | Pending |
+| C2a | Campaign layout and live accessibility | Measure variable-width labels for safe placement, improve small-screen HUD spacing, and use atomic live regions in both campaign playfields. | Positioning and live-region tests; full automated quality gates. | `feat: improve campaign accessibility layout` | Complete |
+| C2b | Manual campaign presentation audit | Review 200% zoom, small-screen layout, reduced motion, keyboard-only flow, and screen-reader announcements in a persistent browser preview. This remains a release condition and is repeated in E2's manual matrix. | Manual browser/accessibility matrix. | `chore: verify adventure presentation` | Deferred to release audit — preview unavailable in this container |
+| D1 | Deep Current | Add the post-four-mission unlock, bounded endless escalation, 60-second breather, and local distance best. | Deep Current bounds, breather, and persistence tests. | `feat: add deep current mode` | Next |
 | E1 | Key Camp | Add posture/finger/letter/word drills, keyboard/hands guide, repeat/skip/slow controls, and `;` acceptance only in this mode. | Lesson sequence and input-policy tests; keyboard-only manual pass. | `feat: add key camp tutor` | Pending |
 | E2 | Release hardening | Complete cross-mode accessibility and failure-path checks, production smoke tooling, and deployment-readiness documentation. | Full `npm test`, `npm run type-check`, `npm run build`, production smoke, and required manual matrix. | `chore: complete v1 release checks` | Pending |
 
@@ -64,7 +65,7 @@ Keep the engine DOM-free. Extend it with target-family behaviour, two-stage Shel
 
 #### B1–C2 — complete Adventure Trail
 
-Add map/progress state, then mission UI and results, followed by practice and Build Break. Timed Current Gates use 8/10/12 stability blocks with one-letter, 2–3 letter, and 3–5 letter projectiles; the next checkpoint adds their stationary, non-persistent practice and short region celebrations. Finish the campaign's measured label placement and accessibility polish before considering Adventure Trail complete.
+Add map/progress state, then mission UI and results, followed by practice and Build Break. Timed Current Gates use 8/10/12 stability blocks with one-letter, 2–3 letter, and 3–5 letter projectiles; stationary, non-persistent practice and short region celebrations follow. C2a completes measured label placement and automated accessibility coverage; C2b's manual browser audit remains required before Adventure Trail is considered fully complete.
 
 #### D1–E2 — remaining complete-v1 modes and hardening
 

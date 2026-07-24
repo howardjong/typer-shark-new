@@ -5,6 +5,7 @@ import { classifyKey } from "../game/input";
 import type { MissionDefinition } from "../game/missions";
 import { isOrdinaryTargetFamily } from "../game/targetTypes";
 import { STARTER_CVC_WORDS } from "../game/wordBanks";
+import { targetTranslateX } from "../game/positioning";
 import { audio } from "../audio/audio";
 import type { Settings } from "../state/settings";
 import type { AppEvent, MissionPhase } from "../state/machine";
@@ -24,7 +25,7 @@ interface Props {
   onOpenSettings: () => void;
 }
 
-const TARGET_WIDTH_PX = 320;
+const TARGET_FALLBACK_WIDTH_PX = 120;
 const HINT_DURATION_MS = 2500;
 
 export function GameScreen({
@@ -69,6 +70,7 @@ export function GameScreen({
   const containerRef = useRef<HTMLDivElement>(null);
   const fieldRef = useRef<HTMLDivElement>(null);
   const fieldWidthRef = useRef(0);
+  const targetWidthsRef = useRef(new Map<number, number>());
   const nodeRefs = useRef(new Map<number, HTMLDivElement>());
   const lastTimeRef = useRef<number | null>(null);
   const remindedRef = useRef(false);
@@ -77,9 +79,12 @@ export function GameScreen({
 
   const playing = phase.name === "playing";
 
-  const xToPx = useCallback((x: number) => {
-    const width = fieldWidthRef.current;
-    return Math.max(0, x * Math.max(0, width - TARGET_WIDTH_PX));
+  const xToPx = useCallback((x: number, targetId: number) => {
+    return targetTranslateX(
+      x,
+      fieldWidthRef.current,
+      targetWidthsRef.current.get(targetId) ?? TARGET_FALLBACK_WIDTH_PX,
+    );
   }, []);
 
   const measureField = useCallback(() => {
@@ -197,7 +202,7 @@ export function GameScreen({
         // Apply positions imperatively — React does not render per frame.
         for (const t of engine.targets) {
           const el = nodeRefs.current.get(t.id);
-          if (el) el.style.transform = `translate3d(${xToPx(t.x)}px, 0, 0)`;
+          if (el) el.style.transform = `translate3d(${xToPx(t.x, t.id)}px, 0, 0)`;
         }
         forceHudTick(now);
       }
@@ -327,9 +332,11 @@ export function GameScreen({
               ref={(el) => {
                 if (el) {
                   nodeRefs.current.set(t.id, el);
-                  el.style.transform = `translate3d(${xToPx(t.x)}px, 0, 0)`;
+                  targetWidthsRef.current.set(t.id, el.getBoundingClientRect().width || TARGET_FALLBACK_WIDTH_PX);
+                  el.style.transform = `translate3d(${xToPx(t.x, t.id)}px, 0, 0)`;
                 } else {
                   nodeRefs.current.delete(t.id);
+                  targetWidthsRef.current.delete(t.id);
                 }
               }}
               className={`target lane-${t.lane}${selected ? " selected" : ""}`}
@@ -358,7 +365,7 @@ export function GameScreen({
         </div>
       )}
 
-      <div className="visually-hidden" aria-live="polite">
+      <div className="visually-hidden" role="status" aria-live="polite" aria-atomic="true">
         {liveMessage}
       </div>
 
