@@ -31,6 +31,12 @@ export const DEFAULT_PROGRESS: Progress = {
   bestDeepCurrentDistance: 0,
 };
 
+/** Deep Current becomes available after four durable Adventure Trail completions. */
+export function isDeepCurrentUnlocked(progress: Pick<Progress, "completedMissions">): boolean {
+  const knownMissionIds = new Set<string>(MISSIONS.map((mission) => mission.id));
+  return new Set(progress.completedMissions.filter((id) => knownMissionIds.has(id))).size >= 4;
+}
+
 function uniqueStrings(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
   return [...new Set(value.filter((entry): entry is string => typeof entry === "string" && entry.length > 0))];

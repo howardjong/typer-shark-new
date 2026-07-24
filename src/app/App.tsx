@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useReducer, useState } from "react";
 import { DIFFICULTIES } from "../game/config";
 import type { MissionOutcome, EngineSnapshot } from "../game/engine";
+import type { DeepCurrentSnapshot } from "../game/deepCurrentEngine";
 import { getMission } from "../game/missions";
 import type { MissionId } from "../game/missions";
 import { accuracyPct, wordsPerMinute } from "../game/stats";
@@ -8,7 +9,7 @@ import { audio } from "../audio/audio";
 import { initialState, reduce } from "../state/machine";
 import { getStorage } from "../state/storage";
 import { DEFAULT_SETTINGS, loadSettings, saveSettings, Settings } from "../state/settings";
-import { loadProgress, recordMissionResult, saveProgress, DEFAULT_PROGRESS } from "../state/progress";
+import { loadProgress, recordDeepCurrentDistance, recordMissionResult, saveProgress, DEFAULT_PROGRESS } from "../state/progress";
 import { recordBuildBreakReward } from "../state/progress";
 import { Welcome } from "../components/Welcome";
 import { KeyboardCheck } from "../components/KeyboardCheck";
@@ -21,6 +22,9 @@ import { PracticeScreen } from "../components/PracticeScreen";
 import { BuildBreakScreen } from "../components/BuildBreakScreen";
 import { GateScreen } from "../components/GateScreen";
 import { GateCelebration } from "../components/GateCelebration";
+import { DeepCurrentSetup } from "../components/DeepCurrentSetup";
+import { DeepCurrentScreen } from "../components/DeepCurrentScreen";
+import { DeepCurrentResults } from "../components/DeepCurrentResults";
 import { SettingsPanel } from "../components/SettingsPanel";
 
 export function App() {
@@ -111,6 +115,14 @@ export function App() {
     dispatch({ type: "BUILD_BREAK_END" });
   }, [storage]);
 
+  const handleDeepCurrentEnd = useCallback((snapshot: DeepCurrentSnapshot) => {
+    const isNewBest = snapshot.distance > progress.bestDeepCurrentDistance;
+    const next = recordDeepCurrentDistance(progress, snapshot.distance);
+    setProgress(next);
+    if (storage) saveProgress(storage, next);
+    dispatch({ type: "DEEP_CURRENT_END", distance: snapshot.distance, isNewBest });
+  }, [progress, storage]);
+
   const rootClass = [
     "app",
     settings.textSize === "large" ? "text-large" : "",
@@ -162,7 +174,20 @@ export function App() {
           progress={progress}
           onSelectMission={(missionId) => dispatch({ type: "SELECT_MISSION", missionId, runPolicy: "timed" })}
           onPracticeMission={(missionId) => dispatch({ type: "SELECT_MISSION", missionId, runPolicy: "practice" })}
+          onDeepCurrent={() => dispatch({ type: "SELECT_DEEP_CURRENT" })}
           onBack={() => dispatch({ type: "HOME" })}
+        />
+      )}
+
+      {state.screen === "deepCurrentSetup" && (
+        <DeepCurrentSetup
+          selectedDifficulty={state.difficulty}
+          onPick={(difficulty) => dispatch({ type: "PICK_DEEP_CURRENT_DIFFICULTY", difficulty })}
+          onStart={() => {
+            audio.init();
+            dispatch({ type: "START_DEEP_CURRENT" });
+          }}
+          onBack={() => dispatch({ type: "VIEW_MAP" })}
         />
       )}
 
@@ -233,6 +258,29 @@ export function App() {
         <GateCelebration
           mission={getMission(state.missionId)}
           onContinue={() => dispatch({ type: "CELEBRATION_COMPLETE" })}
+        />
+      )}
+
+      {state.screen === "deepCurrent" && (
+        <DeepCurrentScreen
+          key={state.attempt}
+          difficultyId={state.difficulty}
+          phase={state.phase}
+          settings={settings}
+          updateSettings={updateSettings}
+          dispatch={dispatch}
+          onFinish={handleDeepCurrentEnd}
+          onOpenSettings={() => setShowSettings(true)}
+        />
+      )}
+
+      {state.screen === "deepCurrentResults" && (
+        <DeepCurrentResults
+          distance={state.distance}
+          bestDistance={progress.bestDeepCurrentDistance}
+          isNewBest={state.isNewBest}
+          onPlayAgain={() => dispatch({ type: "DEEP_CURRENT_PLAY_AGAIN" })}
+          onMap={() => dispatch({ type: "VIEW_MAP" })}
         />
       )}
 

@@ -13,7 +13,8 @@ export type PauseReason = "user" | "auto" | "reminder";
 export type MissionPhase =
   | { name: "countdown"; resuming: boolean }
   | { name: "playing" }
-  | { name: "paused"; reason: PauseReason };
+  | { name: "paused"; reason: PauseReason }
+  | { name: "breather" };
 
 /** Timed campaign play and untimed practice share mission data, not rewards. */
 export type RunPolicy = "timed" | "practice";
@@ -23,6 +24,7 @@ export type AppState =
   | { screen: "keyboardCheck" }
   | { screen: "difficulty" }
   | { screen: "adventureMap"; difficulty: DifficultyId }
+  | { screen: "deepCurrentSetup"; difficulty: DifficultyId }
   | { screen: "briefing"; difficulty: DifficultyId; missionId: MissionId; runPolicy: RunPolicy }
   | {
       screen: "mission";
@@ -51,6 +53,18 @@ export type AppState =
       stats: EngineSnapshot;
     }
   | {
+      screen: "deepCurrent";
+      difficulty: DifficultyId;
+      attempt: number;
+      phase: MissionPhase;
+    }
+  | {
+      screen: "deepCurrentResults";
+      difficulty: DifficultyId;
+      distance: number;
+      isNewBest: boolean;
+    }
+  | {
       screen: "results";
       difficulty: DifficultyId;
       missionId: MissionId;
@@ -63,6 +77,13 @@ export type AppEvent =
   | { type: "PLAY" }
   | { type: "KEYBOARD_OK" }
   | { type: "PICK_DIFFICULTY"; difficulty: DifficultyId }
+  | { type: "SELECT_DEEP_CURRENT" }
+  | { type: "PICK_DEEP_CURRENT_DIFFICULTY"; difficulty: DifficultyId }
+  | { type: "START_DEEP_CURRENT" }
+  | { type: "DEEP_CURRENT_BREATHER" }
+  | { type: "DEEP_CURRENT_CONTINUE" }
+  | { type: "DEEP_CURRENT_END"; distance: number; isNewBest: boolean }
+  | { type: "DEEP_CURRENT_PLAY_AGAIN" }
   | { type: "VIEW_MAP" }
   | { type: "SELECT_MISSION"; missionId: MissionId; runPolicy: RunPolicy }
   | { type: "START_MISSION" }
@@ -96,8 +117,26 @@ export function reduce(state: AppState, event: AppEvent): AppState {
         ? { screen: "adventureMap", difficulty: event.difficulty }
         : state;
 
+    case "SELECT_DEEP_CURRENT":
+      return state.screen === "adventureMap"
+        ? { screen: "deepCurrentSetup", difficulty: state.difficulty }
+        : state;
+
+    case "PICK_DEEP_CURRENT_DIFFICULTY":
+      return state.screen === "deepCurrentSetup" ? { ...state, difficulty: event.difficulty } : state;
+
+    case "START_DEEP_CURRENT":
+      return state.screen === "deepCurrentSetup"
+        ? {
+            screen: "deepCurrent",
+            difficulty: state.difficulty,
+            attempt: 1,
+            phase: { name: "countdown", resuming: false },
+          }
+        : state;
+
     case "VIEW_MAP":
-      return state.screen === "briefing" || state.screen === "results"
+      return state.screen === "briefing" || state.screen === "results" || state.screen === "deepCurrentSetup" || state.screen === "deepCurrentResults"
         ? { screen: "adventureMap", difficulty: state.difficulty }
         : state;
 
@@ -175,25 +214,55 @@ export function reduce(state: AppState, event: AppEvent): AppState {
           }
         : state;
 
+    case "DEEP_CURRENT_BREATHER":
+      return state.screen === "deepCurrent" && state.phase.name === "playing"
+        ? { ...state, phase: { name: "breather" } }
+        : state;
+
+    case "DEEP_CURRENT_CONTINUE":
+      return state.screen === "deepCurrent" && state.phase.name === "breather"
+        ? { ...state, phase: { name: "countdown", resuming: true } }
+        : state;
+
+    case "DEEP_CURRENT_END":
+      return state.screen === "deepCurrent"
+        ? {
+            screen: "deepCurrentResults",
+            difficulty: state.difficulty,
+            distance: event.distance,
+            isNewBest: event.isNewBest,
+          }
+        : state;
+
+    case "DEEP_CURRENT_PLAY_AGAIN":
+      return state.screen === "deepCurrentResults"
+        ? {
+            screen: "deepCurrent",
+            difficulty: state.difficulty,
+            attempt: 1,
+            phase: { name: "countdown", resuming: false },
+          }
+        : state;
+
     case "COUNTDOWN_DONE":
-      return state.screen === "mission" && state.phase.name === "countdown"
+      return (state.screen === "mission" || state.screen === "deepCurrent") && state.phase.name === "countdown"
         ? { ...state, phase: { name: "playing" } }
         : state;
 
     case "PAUSE":
       // Guard: pausing is only meaningful during active play.
-      return state.screen === "mission" && state.phase.name === "playing"
+      return (state.screen === "mission" || state.screen === "deepCurrent") && state.phase.name === "playing"
         ? { ...state, phase: { name: "paused", reason: event.reason } }
         : state;
 
     case "RESUME":
       // Resume always goes through an explicit three-second countdown.
-      return state.screen === "mission" && state.phase.name === "paused"
+      return (state.screen === "mission" || state.screen === "deepCurrent") && state.phase.name === "paused"
         ? { ...state, phase: { name: "countdown", resuming: true } }
         : state;
 
     case "RESTART":
-      return state.screen === "mission"
+      return state.screen === "mission" || state.screen === "deepCurrent"
         ? {
             ...state,
             attempt: state.attempt + 1,
@@ -202,7 +271,7 @@ export function reduce(state: AppState, event: AppEvent): AppState {
         : state;
 
     case "LEAVE":
-      return state.screen === "mission" || state.screen === "practice" || state.screen === "buildBreak" || state.screen === "gateCelebration"
+      return state.screen === "mission" || state.screen === "practice" || state.screen === "buildBreak" || state.screen === "gateCelebration" || state.screen === "deepCurrent" || state.screen === "deepCurrentSetup"
         ? { screen: "adventureMap", difficulty: state.difficulty }
         : state;
 
@@ -247,7 +316,7 @@ export function reduce(state: AppState, event: AppEvent): AppState {
     case "HOME":
       return state.screen === "results" || state.screen === "difficulty" ||
         state.screen === "briefing" || state.screen === "keyboardCheck" || state.screen === "adventureMap" ||
-        state.screen === "practice" || state.screen === "gateCelebration"
+        state.screen === "practice" || state.screen === "gateCelebration" || state.screen === "deepCurrent" || state.screen === "deepCurrentSetup" || state.screen === "deepCurrentResults"
         ? { screen: "welcome" }
         : state;
 

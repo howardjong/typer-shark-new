@@ -132,4 +132,20 @@ describe("app state machine", () => {
     const results = reduce(celebration, { type: "CELEBRATION_COMPLETE" });
     expect(results).toMatchObject({ screen: "results", outcome: "success", runPolicy: "timed" });
   });
+
+  it("keeps Deep Current's selected pace, breather, and results transitions explicit", () => {
+    const map = { screen: "adventureMap" as const, difficulty: "starter" as const };
+    const setup = reduce(map, { type: "SELECT_DEEP_CURRENT" });
+    expect(setup).toMatchObject({ screen: "deepCurrentSetup", difficulty: "starter" });
+    const swiftSetup = reduce(setup, { type: "PICK_DEEP_CURRENT_DIFFICULTY", difficulty: "swift" });
+    const run = reduce(swiftSetup, { type: "START_DEEP_CURRENT" });
+    expect(run).toMatchObject({ screen: "deepCurrent", difficulty: "swift", phase: { name: "countdown" } });
+    const playing = reduce(run, { type: "COUNTDOWN_DONE" });
+    const breather = reduce(playing, { type: "DEEP_CURRENT_BREATHER" });
+    expect(breather).toMatchObject({ phase: { name: "breather" } });
+    const resumed = reduce(breather, { type: "DEEP_CURRENT_CONTINUE" });
+    expect(resumed).toMatchObject({ phase: { name: "countdown", resuming: true } });
+    const results = reduce(resumed, { type: "DEEP_CURRENT_END", distance: 74, isNewBest: true });
+    expect(results).toMatchObject({ screen: "deepCurrentResults", distance: 74, isNewBest: true });
+  });
 });

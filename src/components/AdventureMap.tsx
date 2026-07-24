@@ -2,12 +2,14 @@ import type { DifficultyId } from "../game/config";
 import { MISSIONS } from "../game/missions";
 import type { RegionId } from "../game/missions";
 import type { Progress } from "../state/progress";
+import { isDeepCurrentUnlocked } from "../state/progress";
 
 interface Props {
   difficulty: DifficultyId;
   progress: Progress;
   onSelectMission: (missionId: (typeof MISSIONS)[number]["id"]) => void;
   onPracticeMission: (missionId: (typeof MISSIONS)[number]["id"]) => void;
+  onDeepCurrent: () => void;
   onBack: () => void;
 }
 
@@ -24,6 +26,7 @@ export function AdventureMap({
   progress,
   onSelectMission,
   onPracticeMission,
+  onDeepCurrent,
   onBack,
 }: Props) {
   const unlocked = new Set(progress.unlockedMissionIds);
@@ -78,6 +81,15 @@ export function AdventureMap({
           ))}
         </div>
         <p className="build-bits-total">Build Bits collected: <strong>{progress.buildBits}</strong></p>
+        <section className="deep-current-card" aria-labelledby="deep-current-title">
+          <div>
+            <h2 id="deep-current-title">Deep Current</h2>
+            <p>Optional endless challenge with a gentle breather every minute.</p>
+          </div>
+          <button className="btn" disabled={!isDeepCurrentUnlocked(progress)} onClick={onDeepCurrent}>
+            {isDeepCurrentUnlocked(progress) ? "Enter Deep Current" : "Complete 4 missions to unlock"}
+          </button>
+        </section>
         <div className="button-col">
           <button className="btn" onClick={onBack}>Return Home</button>
         </div>

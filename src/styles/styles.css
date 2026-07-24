@@ -318,6 +318,20 @@ p {
   outline-offset: 2px;
 }
 
+.deep-current-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 18px 0;
+  padding: 14px;
+  border: 3px solid var(--violet);
+  border-radius: 12px;
+  background: linear-gradient(90deg, rgba(155, 127, 232, 0.26), var(--water));
+}
+.deep-current-card h2 { margin: 0 0 4px; }
+.deep-current-card p { margin: 0; color: var(--text-dim); }
+
 /* ---------- untimed practice ---------- */
 
 .practice-screen {
@@ -639,6 +653,9 @@ p {
 /* ---------- Current Gate encounter ---------- */
 
 .gate-screen { background: linear-gradient(180deg, #3d3a72 0%, var(--water) 55%, var(--navy-deep) 100%); }
+.deep-current-screen { background: linear-gradient(180deg, #233e68 0%, #345a88 48%, var(--navy-deep) 100%); }
+.deep-current-hud { border-bottom-color: var(--violet); }
+.deep-tier { color: var(--violet); font-weight: bold; }
 
 .gate-backdrop {
   position: absolute;
@@ -1022,6 +1039,7 @@ p {
   .map-card {
     padding: 16px 4px;
   }
+  .deep-current-card { align-items: flex-start; flex-direction: column; }
   .mission-list {
     grid-template-columns: 1fr;
   }

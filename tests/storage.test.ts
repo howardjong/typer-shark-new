@@ -3,6 +3,7 @@ import { readJson, writeJson, StorageLike } from "../src/state/storage";
 import { DEFAULT_SETTINGS, loadSettings, sanitizeSettings, saveSettings, SETTINGS_KEY } from "../src/state/settings";
 import {
   DEFAULT_PROGRESS,
+  isDeepCurrentUnlocked,
   loadProgress,
   recordDeepCurrentDistance,
   recordMissionResult,
@@ -111,5 +112,13 @@ describe("progress persistence", () => {
     const p = recordDeepCurrentDistance(DEFAULT_PROGRESS, 128);
     expect(p.bestDeepCurrentDistance).toBe(128);
     expect(p.completedMissions).toEqual([]);
+  });
+  it("unlocks Deep Current after four distinct Adventure Trail completions", () => {
+    const three = ["warmup-first-letter", "sunlit-top-row", "sunlit-short-words"];
+    const four = [...three, "sunlit-gate"];
+    expect(isDeepCurrentUnlocked({ completedMissions: three })).toBe(false);
+    expect(isDeepCurrentUnlocked({ completedMissions: four })).toBe(true);
+    expect(isDeepCurrentUnlocked({ completedMissions: [...four, "sunlit-gate"] })).toBe(true);
+    expect(isDeepCurrentUnlocked({ completedMissions: ["one", "two", "three", "four"] })).toBe(false);
   });
 });
